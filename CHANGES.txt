@@ -1,3 +1,4 @@
 1.5.3 (unreleased)
 ------------------
  - move to github [amleczko]
+ - added buttons to switch between reports keeping the same parameters

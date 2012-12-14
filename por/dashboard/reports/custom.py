@@ -336,6 +336,7 @@ class CustomerReport(object):
             return {
                     'form': form.render(),
                     'saved_query_form': render_saved_query_form(self.request),
+		    'qs':'',
                     'result_table': None
                     }
 
@@ -345,6 +346,7 @@ class CustomerReport(object):
             return {
                     'form': e.render(),
                     'saved_query_form': render_saved_query_form(self.request),
+		    'qs':'',
                     'result_table': None
                     }
 
@@ -373,6 +375,7 @@ class CustomerReport(object):
         return {
                 'form': form.render(appstruct=appstruct),
                 'saved_query_form': render_saved_query_form(self.request),
+                'qs': self.request.query_string,
                 'result_table': result_table,
                 }
 

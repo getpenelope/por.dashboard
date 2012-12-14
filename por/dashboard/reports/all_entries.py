@@ -254,6 +254,7 @@ class AllEntriesReport(object):
             return {
                     'form': form.render(),
                     'saved_query_form': render_saved_query_form(self.request),
+		    'qs':'',
                     'has_results': False
                     }
 
@@ -263,6 +264,7 @@ class AllEntriesReport(object):
             return {
                     'form': e.render(),
                     'saved_query_form': render_saved_query_form(self.request),
+                    'qs': self.request.query_string,
                     'has_results': False
                     }
 
@@ -301,6 +303,7 @@ class AllEntriesReport(object):
         return {
                 'form': form.render(appstruct=appstruct),
                 'saved_query_form': render_saved_query_form(self.request),
+                'qs': self.request.query_string,
                 'has_results': len(sourcetable['rows'])>0,
                 'tpReport_oConf': json.dumps({
                                     'sourcetable': sourcetable,

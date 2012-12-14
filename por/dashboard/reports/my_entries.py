@@ -54,6 +54,7 @@ class MyEntriesReport(object):
 
 
     class MyEntriesSchema(colander.MappingSchema):
+        customer_id = fields.customer_id.clone()
         project_id = fields.project_id.clone()
         date_from = fields.date_from.clone()
         date_from.default = deferred_yesterday
@@ -64,10 +65,13 @@ class MyEntriesReport(object):
         searchtext = fields.searchtext.clone()
 
 
-    def search(self, limit, author_id, project_id, date_from, date_to, searchtext):
+    def search(self, limit, author_id, project_id, customer_id, date_from, date_to, searchtext):
         qry = DBSession.query(TimeEntry)
 
         qry = qry.filter(TimeEntry.author_id==author_id)
+
+        if customer_id is not colander.null:
+            qry = qry.filter(TimeEntry.project.customer_id == customer_id)
 
         if project_id is not colander.null:
             qry = qry.filter(TimeEntry.project_id==project_id)
@@ -89,6 +93,7 @@ class MyEntriesReport(object):
         qry = self.request.filter_viewables(qry)
         entries_by_date = []
         entries_count = 0
+        
         for k, g in itertools.groupby(qry, operator.attrgetter('date')):
             g = list(g)
             entries_by_date.append((k, g))
@@ -125,7 +130,7 @@ class MyEntriesReport(object):
                     'saved_query_form': render_saved_query_form(self.request),
                     'result_table': None
                     }
-
+        
         current_uid = self.request.authenticated_user.id
         entries_by_date, entries_count = self.search(author_id=current_uid,
                                                      limit=limit,

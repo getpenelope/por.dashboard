@@ -40,7 +40,7 @@
                 <span tal:replace="structure highlight(te.description)"/>
             </a>
           </td>
-          <td>${te.project.name}</td>
+          <td>${te.project.customer.name} <br/> ${te.project.name}</td>
           <td>${te.location}</td>
           <td>${te.hours_str}</td>
           <td>${format(te.hours_as_work_days, '.3f')}</td>

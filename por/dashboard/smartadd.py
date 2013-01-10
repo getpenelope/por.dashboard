@@ -284,7 +284,7 @@ class SmartAddParser(object):
 
         missing_tickets = self._matching_tickets(self.unparsed)
         if missing_tickets:
-            errors.append(u'{ticket_label} {ticket_numbers} not found'.format(
+            errors.append(u'{ticket_label} {ticket_numbers} not found or customer request already invoiced'.format(
                                         ticket_label = ['Ticket', 'Tickets'][len(missing_tickets)>1],
                                         ticket_numbers = ', '.join('#'+ticket_id for ticket_id in missing_tickets)),
                                         )

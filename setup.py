@@ -8,6 +8,7 @@ README = open(os.path.join(here, 'README.md')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
+    'setuptools',
     'pyramid',
     'transaction',
     'repoze.tm2>=1.0b1', # default_commit_veto

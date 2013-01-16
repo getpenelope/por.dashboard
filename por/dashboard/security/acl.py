@@ -184,6 +184,10 @@ def __calculate_matrix__(user_id):
     user = DBSession.query(User).get(user_id)
     global_roles = set(user.roles_names)
     local_roles = {}
+    if 'administrator' in global_roles:
+        log.debug("User: %s.\nGlobal roles: %s.\nLocal roles: %s" % (user, global_roles, local_roles))
+        return global_roles, local_roles
+
     groups = DBSession().query(Group)\
                         .join(Group.roles)\
                         .filter(Group.users.contains(user))
@@ -205,15 +209,16 @@ def __calculate_matrix__(user_id):
     if u'project_manager' in roles_from_projects:
         global_roles.add(u'local_project_manager')
 
-    log.debug("User: %s.\nGlobal roles: %s.\nLocal roles: %s" % (user_id, global_roles, local_roles))
-
+    log.debug("User: %s.\nGlobal roles: %s.\nLocal roles: %s" % (user, global_roles, local_roles))
     return global_roles, local_roles
 
 
 def invalidate_user_calculate_matrix(target, value, initiator):
+    log.debug("Cache invalidated for %s" % target)
     region_invalidate(__calculate_matrix__, 'calculate_matrix', target.id)
 
 def invalidate_users_calculate_matrix(target, value, initiator):
+    log.debug("Cache invalidated for %s" % value)
     region_invalidate(__calculate_matrix__, 'calculate_matrix', value.id)
 
 

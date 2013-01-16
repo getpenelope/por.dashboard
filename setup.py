@@ -46,7 +46,7 @@ requires = [
     'pyramid_fanstatic',
     'js.lesscss',
     'deform_bootstrap',
-    'Beaker==1.5.4',
+    'Beaker',
     'js.jquery_datatables==1.8.2',
     'unittest2',
     ]

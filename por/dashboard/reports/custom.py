@@ -196,6 +196,8 @@ class CustomerReport(object):
                         'sensitive': ['no', 'yes'][tkt['sensitive']],
                         'hours': te.hours,
                     }
+            if te.project.karma_id:
+                entry['karma'] = te.project.karma_id
 
             rows.append(entry)
 
@@ -258,9 +260,21 @@ class CustomerReport(object):
 
         return rows, [c for c in columns if c[0] in (group_by + ['hours'])]
 
+    @view_config(name='custom_json', route_name='reports', renderer='json', permission='reports_custom')
+    def custom_json(self):
+        schema = self.CustomSchema(validator=validate_period).clone()
+        form = PorInlineForm(schema)
+        controls = self.request.GET.items()
+        appstruct = form.validate(controls)
+        detail = self.search(render_links=False, **appstruct)
+        result = []
+        for row in detail['rows']:
+            row['hours'] = timedelta_as_human_str(row['hours'])
+            del row['description']
+            result.append(row)
+        return result
 
-
-    @view_config(name='custom_xls', route_name='reports', renderer='xls_report')
+    @view_config(name='custom_xls', route_name='reports', renderer='xls_report', permission='reports_custom')
     def custom_xls(self):
         schema = self.CustomSchema(validator=validate_period).clone()
         form = PorInlineForm(schema)
@@ -357,7 +371,7 @@ class CustomerReport(object):
         if detail['rows']:
             base_link = self.request.path_url.rsplit('/', 1)[0]
             xls_link = ''.join([base_link, '/', 'custom_xls', '?', self.request.query_string])
-
+            json_link = ''.join([base_link, '/', 'custom_json', '?', self.request.query_string])
             delta0 = datetime.timedelta()
             delta_tot = sum((row['hours'] for row in detail['rows']), delta0)
             human_tot = timedelta_as_human_str(delta_tot)
@@ -367,6 +381,7 @@ class CustomerReport(object):
                                       'rows': detail['rows'],
                                       'columns': detail['columns'],
                                       'xls_link': xls_link,
+                                      'json_link': json_link,
                                       'format_web': self.format_web,
                                       'human_tot': human_tot,
                                   },

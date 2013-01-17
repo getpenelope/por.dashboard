@@ -11,6 +11,10 @@
     <i class="icon-download"></i>
     Download as XLS
   </a>
+  <a href="${json_link}">
+    <i class="icon-download"></i>
+    Download as JSON
+  </a>
 
   <table class="table table-bordered time-entries tablesorter {sortlist: [[0,0],[1,0]]}">
     <thead>

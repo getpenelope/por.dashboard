@@ -17,7 +17,12 @@
             <td><a href="${request.fa_url('Group', group.id)}">${group}</a></td>
             <td>
               <tal:users repeat="user group.users">
-                <a href="${request.fa_url('User', user.id)}">${user.fullname}</a><tal:comma condition="not:repeat.user.end">, </tal:comma>
+                <tal:view condition="request.has_permission('view', user)">
+                  <a href="${request.fa_url('User', user.id)}">${user.fullname}</a><tal:comma condition="not:repeat.user.end">, </tal:comma>
+                </tal:view>
+                <tal:view condition="not request.has_permission('view', user)">
+                  <span>${user.fullname}</span><tal:comma condition="not:repeat.user.end">, </tal:comma>
+                </tal:view>
               </tal:users>
             </td>
           </tr>

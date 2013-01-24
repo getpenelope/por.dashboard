@@ -58,6 +58,7 @@ class WizardForm(deform.Form):
                             ])
 
     inline_form = False
-    bootstrap_form_style = 'form-horizontal'
+    #bootstrap_form_style = 'form-horizontal'
+    bootstrap_form_style = 'form-inline'
     css_class = u'well'
 

@@ -117,7 +117,7 @@ class CustomerModelView(ModelView):
 
     defaults_actions = deepcopy(actions.defaults_actions)
     defaults_actions.update(show_buttons=actions.Actions(actions.edit))
-    defaults_actions['customer_projects_buttons'] = actions.Actions(add_project)#, add_project_wizard)
+    defaults_actions['customer_projects_buttons'] = actions.Actions(add_project, add_project_wizard)
     defaults_actions.update(show_tabs=customer_tabs)
     defaults_actions.update(customer_projects_tabs=customer_tabs)
     defaults_actions.update(customer_time_entries_tabs=customer_tabs)

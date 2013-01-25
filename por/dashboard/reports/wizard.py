@@ -9,8 +9,6 @@ from pyramid import httpexceptions as exc
 from por.models import Project, DBSession, User #CustomerRequest
 from por.models.dashboard import Trac, Role
 
-#from pyramid.view import view_config
-
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
 
@@ -36,6 +34,7 @@ class GoogleDocsSchema(colander.Schema):
                                             placeholder=u'Estimations, paste your google docs folder'),
                                 missing=None,
                                 title=u'')
+
 
 class UsersSchema(colander.SequenceSchema):
     class UserSchema(colander.Schema):
@@ -73,6 +72,7 @@ class NewUsersSchema(colander.SequenceSchema):
 
     new_user = NewUserSchema()
 
+
 class TracStdCR(colander.Schema):
     class Milestones(colander.SequenceSchema):
         class Milestone(colander.Schema):
@@ -97,6 +97,7 @@ class TracStdCR(colander.Schema):
                         missing=None,
                         title=u'Create CR "VERIFICHE E VALIDAZIONI PROGETTO" and 2 additional tickets'
                     )
+
 
 class ProjectCR(colander.Schema):
     class CustomerRequests(colander.SequenceSchema):
@@ -159,7 +160,6 @@ class Wizard(object):
         self.context = context
         self.request = request
 
-    #@view_config(name='wizard', route_name='reports', renderer='skin', permission='reports_my_entries')
     def render(self):
         result = {}
         result['main_template'] = get_renderer('por.dashboard:skins/main_template.pt').implementation()
@@ -168,28 +168,26 @@ class Wizard(object):
         schema = WizardSchema().clone()
         wizard_fanstatic.need()
         form = WizardForm(schema,
-                             formid='wizard',
-                             method='GET',
-                             buttons=[
+                          formid='wizard',
+                          method='POST',
+                          buttons=[
                                  SubmitButton(title=u'Submit'),
                                  ResetButton(title=u'Reset'),
-                             ])
-                             
+                          ])
         form['new_users'].widget = SequenceWidget()
         form['users'].widget = SequenceWidget(min_len=1)
-        
-        #import pdb; pdb.set_trace()
+
         users = DBSession.query(User).order_by(User.fullname)
         form['users']['user']['username'].widget.values = [('', '')] + [(str(u.id), u.fullname) for u in users]
-        
+
         roles = DBSession.query(Role).order_by(Role.name)
         form['users']['user']['role'].widget.values = [('', '')] + [(str(role.id), role.name) for role in roles]
-        
+
         form['trac']['milestones'].widget = SequenceWidget(min_len=1)
         #form['project_cr']['customer_requests'].widget = SequenceWidget(min_len=1)
 
         # validate input
-        controls = self.request.GET.items()
+        controls = self.request.POST.items()
         if controls != []:
             try:
                 appstruct = form.validate(controls)
@@ -200,20 +198,17 @@ class Wizard(object):
 
         result['form'] = form.render(colander.null)
         return result
-          
+
     def handle_save(self, appstruct):
         """The main handle method for the wizard."""
         customer = self.context.get_instance()
-        
+
         project = Project(name=appstruct['project_name'])
         trac = Trac(name="Trac for %s" % appstruct['project_name'])
         trac.milestones = appstruct['trac']['milestones']
         project.add_application(trac)
         #svn = Subversion(name="SVN")
         #project.add_application(svn)
-        
-        customer.add_project(project)
-        #import pdb; pdb.set_trace()
-        
-        raise exc.HTTPFound(location=self.request.fa_url('Customer', customer.id))
 
+        customer.add_project(project)
+        raise exc.HTTPFound(location=self.request.fa_url('Customer', customer.id))

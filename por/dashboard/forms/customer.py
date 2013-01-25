@@ -64,6 +64,15 @@ def configurate(config):
         renderer='por.dashboard.forms:templates/wizard.pt',
         model='por.models.dashboard.Customer',
         view=Wizard)
+    #custom view for adding a project to a customer
+    config.formalchemy_model_view('admin',
+        request_method='POST',
+        permission='new',
+        name='wizard',
+        attr='render',
+        renderer='por.dashboard.forms:templates/wizard.pt',
+        model='por.models.dashboard.Customer',
+        view=Wizard)
 
     #custom view for customer projects
     config.formalchemy_model_view('admin',

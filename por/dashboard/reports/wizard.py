@@ -1,13 +1,14 @@
 import colander
 
 from colander import SchemaNode
+import deform
 from deform import ValidationFailure
 from deform.widget import CheckboxWidget, TextInputWidget, SelectWidget, SequenceWidget
-from deform_bootstrap.widget import ChosenSingleWidget
+from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
-from por.models import Project, DBSession, User #CustomerRequest
-from por.models.dashboard import Trac, Role
+from por.models import Project, Group, DBSession, User #CustomerRequest
+from por.models.dashboard import Trac, Role, GoogleDoc
 
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
@@ -38,10 +39,10 @@ class GoogleDocsSchema(colander.Schema):
 
 class UsersSchema(colander.SequenceSchema):
     class UserSchema(colander.Schema):
-        username = SchemaNode(typ=colander.String(),
-                        widget=ChosenSingleWidget(),
-                        missing=colander.required,
-                        title=u'')
+        usernames = SchemaNode(deform.Set(allow_empty=False),
+                   widget=ChosenMultipleWidget(placeholder=u'Select people'),
+                   missing=colander.required,
+                   title=u'')
         role = SchemaNode(typ=colander.String(),
                         widget=ChosenSingleWidget(),
                         missing=colander.required,
@@ -65,10 +66,10 @@ class NewUsersSchema(colander.SequenceSchema):
                         missing=None,
                         title=u'Send e-mail'
                     )
-        #BBB to be fixed with proper role values
         role = SchemaNode(typ=colander.String(),
-                        widget=SelectWidget(),
-                        missing=None,)
+                        widget=ChosenSingleWidget(),
+                        missing=colander.required,
+                        title=u'role')
 
     new_user = NewUserSchema()
 
@@ -86,11 +87,6 @@ class TracStdCR(colander.Schema):
 
         milestone = Milestone()
 
-    create_trac = SchemaNode(typ=colander.Boolean(),
-                        widget=CheckboxWidget(),
-                        missing=False,
-                        title=u'Create trac'
-                    )
     milestones = Milestones()
     create_cr = SchemaNode(typ=colander.Boolean(),
                         widget=CheckboxWidget(),
@@ -104,13 +100,12 @@ class ProjectCR(colander.Schema):
         class CustomerRequest(colander.Schema):
             title = SchemaNode(typ=colander.String(),
                         widget=TextInputWidget(placeholder=u'Title, the customer wants...'),
-                        missing=None,
+                        missing=colander.required,
                         title=u'')
             ticket = SchemaNode(typ=colander.Boolean(),
                         widget=CheckboxWidget(),
                         missing=None,
-                        title=u'Create related ticket'
-                    )
+                        title=u'Create related ticket')
             junior = SchemaNode(typ=colander.Decimal(),
                         missing=None,
                         title=u'Junior')
@@ -131,11 +126,6 @@ class ProjectCR(colander.Schema):
                         title=u'Tester')
         customer_request = CustomerRequest()
 
-    create_cr = SchemaNode(typ=colander.Boolean(),
-                        widget=CheckboxWidget(),
-                        missing=None,
-                        title=u'Create the following CRs'
-                    )
     customer_requests = CustomerRequests()
 
 
@@ -152,7 +142,7 @@ class WizardSchema(colander.Schema):
     new_users = NewUsersSchema()
 
     trac = TracStdCR()
-    #project_cr = ProjectCR()
+    project_cr = ProjectCR()
 
 
 class Wizard(object):
@@ -178,13 +168,14 @@ class Wizard(object):
         form['users'].widget = SequenceWidget(min_len=1)
 
         users = DBSession.query(User).order_by(User.fullname)
-        form['users']['user']['username'].widget.values = [('', '')] + [(str(u.id), u.fullname) for u in users]
+        form['users']['user']['usernames'].widget.values = [('', '')] + [(str(u.id), u.fullname) for u in users]
 
         roles = DBSession.query(Role).order_by(Role.name)
         form['users']['user']['role'].widget.values = [('', '')] + [(str(role.id), role.name) for role in roles]
+        form['new_users']['new_user']['role'].widget.values = [('', '')] + [(str(role.id), role.name) for role in roles]
 
         form['trac']['milestones'].widget = SequenceWidget(min_len=1)
-        #form['project_cr']['customer_requests'].widget = SequenceWidget(min_len=1)
+        form['project_cr']['customer_requests'].widget = SequenceWidget()
 
         # validate input
         controls = self.request.POST.items()
@@ -200,15 +191,91 @@ class Wizard(object):
         return result
 
     def handle_save(self, appstruct):
-        """The main handle method for the wizard."""
-        customer = self.context.get_instance()
+        """
+            The main handle method for the wizard.
+            {'google_docs': {'documentation_analysis': u'a',
+                 'estimations': u'c',
+                 'sent_by_customer': u'b'},
+             'new_users': [{'email': u'massimo@redturtle.it',
+                            'fullname': u'Massimo Azzolini',
+                            'role': u'customer',
+                            'send_email_howto': False}],
+             'project_name': u'one',
+             'trac': {'create_cr': False,
+                      'create_trac': False,
+                      'milestones': [{'due_date': datetime.date(2013, 1, 27),
+                                      'title': u'Le Ceste di Natale'}]},
+             'users': [{'role': u'customer', 'usernames': set([u'1', u'2'])}]}
 
+        """
+        customer = self.context.get_instance()
+        #import pdb; pdb.set_trace()
+        #create new users
+        groups = {}
+        for newuser in appstruct['new_users']:
+            user = User(fullname=newuser['fullname'], email=newuser['email'])
+            if not groups.has_key(newuser['role']):
+                groups[newuser['role']] = []
+            DBSession.add(user)
+            DBSession.flush()
+            groups[newuser['role']].append(u'%s' % user.id)
+
+        #create project 
         project = Project(name=appstruct['project_name'])
+
+        #... and set manager
+
+        #set groups
+        for g in appstruct['users']:
+            if not groups.has_key(g['role']):
+                groups[g['role']] = []
+            for u in g['usernames']:
+                groups[g['role']].append(u)
+
+        for r, u in groups.items():
+            role = DBSession.query(Role).filter(Role.name==r)[0]
+            users = []
+            for user_id in u:
+                user = DBSession.query(User).filter(User.id==user_id)[0]
+                users.append(user)
+            group = Group(roles=[role,], users=users)
+            project.add_group(group)
+
+                
+
+        #create CR
+
+
+        #create quality CR
+
+        #create trac
         trac = Trac(name="Trac for %s" % appstruct['project_name'])
         trac.milestones = appstruct['trac']['milestones']
         project.add_application(trac)
+
+        #create quality ticket
+
+        #create svn
         #svn = Subversion(name="SVN")
         #project.add_application(svn)
+
+        #create google docs/folders
+        if appstruct['google_docs']['documentation_analysis']:
+            app = GoogleDoc(name=u'documentation_analysis', 
+                            api_uri=appstruct['google_docs']['documentation_analysis'])
+            project.add_application(app)
+
+        if appstruct['google_docs']['estimations']:
+            app = GoogleDoc(name=u'estimations', 
+                            api_uri=appstruct['google_docs']['estimations'])
+            project.add_application(app)
+
+
+        if appstruct['google_docs']['sent_by_customer']:
+            app = GoogleDoc(name=u'sent_by_customer', 
+                            api_uri=appstruct['google_docs']['sent_by_customer'])
+            project.add_application(app)
+
 
         customer.add_project(project)
         raise exc.HTTPFound(location=self.request.fa_url('Customer', customer.id))

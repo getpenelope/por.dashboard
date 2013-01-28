@@ -7,8 +7,8 @@ from deform.widget import CheckboxWidget, TextInputWidget, SelectWidget, Sequenc
 from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
-from por.models import Project, Group, DBSession, User #CustomerRequest
-from por.models.dashboard import Trac, Role, GoogleDoc
+from por.models import Project, Group, DBSession, User, CustomerRequest
+from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
 
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
@@ -50,16 +50,26 @@ class UsersSchema(colander.SequenceSchema):
     user = UserSchema()
 
 
+
+
 class NewUsersSchema(colander.SequenceSchema):
     class NewUserSchema(colander.Schema):
+        def unusedEmail(value):
+            try:
+                user = DBSession.query(User).filter(User.email==value).one()
+                return "email '%s' is already associated to another user" % value
+            except:
+                return True
+
+
         fullname = SchemaNode(typ=colander.String(),
                         widget=TextInputWidget(placeholder=u'Fullname'),
-                        missing=None,
+                        missing=colander.required,
                         title=u'')
         email = SchemaNode(typ=colander.String(),
                         widget=TextInputWidget(placeholder=u'E-mail'),
-                        missing=None,
-                        validator=colander.Email(),
+                        missing=colander.required,
+                        validator=colander.Function(unusedEmail, ''),
                         title=u'')
         send_email_howto = SchemaNode(typ=colander.Boolean(),
                         widget=CheckboxWidget(),
@@ -74,26 +84,17 @@ class NewUsersSchema(colander.SequenceSchema):
     new_user = NewUserSchema()
 
 
-class TracStdCR(colander.Schema):
-    class Milestones(colander.SequenceSchema):
-        class Milestone(colander.Schema):
-            title = SchemaNode(typ=colander.String(),
-                        widget=TextInputWidget(placeholder=u'Title'),
-                        missing=colander.required,
-                        title=u'')
-            due_date = SchemaNode(typ=colander.Date(),
-                        missing=colander.required,
-                        title=u'Due date')
+class Milestones(colander.SequenceSchema):
+    class Milestone(colander.Schema):
+        title = SchemaNode(typ=colander.String(),
+                    widget=TextInputWidget(placeholder=u'Title'),
+                    missing=colander.required,
+                    title=u'')
+        due_date = SchemaNode(typ=colander.Date(),
+                    missing=colander.required,
+                    title=u'Due date')
 
-        milestone = Milestone()
-
-    milestones = Milestones()
-    create_cr = SchemaNode(typ=colander.Boolean(),
-                        widget=CheckboxWidget(),
-                        missing=None,
-                        title=u'Create CR "VERIFICHE E VALIDAZIONI PROGETTO" and 2 additional tickets'
-                    )
-
+    milestone = Milestone()
 
 class ProjectCR(colander.Schema):
     class CustomerRequests(colander.SequenceSchema):
@@ -102,32 +103,43 @@ class ProjectCR(colander.Schema):
                         widget=TextInputWidget(placeholder=u'Title, the customer wants...'),
                         missing=colander.required,
                         title=u'')
+            junior = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'Junior'),
+                        missing=None,
+                        title=u'')
+            senior = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'Senior'),
+                        missing=None,
+                        title=u'')
+            graphic = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'Graphic'),
+                        missing=None,
+                        title=u'')
+            pm = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'PM'),
+                        missing=None,
+                        title=u'')
+            architect = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'Arch.'),
+                        missing=None,
+                        title=u'')
+            tester = SchemaNode(typ=colander.Decimal(),
+                        widget=TextInputWidget(css_class='input-mini', placeholder=u'Tester'),
+                        missing=None,
+                        title=u'')
             ticket = SchemaNode(typ=colander.Boolean(),
                         widget=CheckboxWidget(),
                         missing=None,
                         title=u'Create related ticket')
-            junior = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'Junior')
-            senior = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'Senior')
-            graphic = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'Graphic')
-            pm = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'PM')
-            architect = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'Architect')
-            tester = SchemaNode(typ=colander.Decimal(),
-                        missing=None,
-                        title=u'Tester')
+            
         customer_request = CustomerRequest()
 
     customer_requests = CustomerRequests()
-
+    create_cr = SchemaNode(typ=colander.Boolean(),
+                        widget=CheckboxWidget(),
+                        missing=None,
+                        title=u'Create CR "VERIFICHE E VALIDAZIONI PROGETTO" and 2 additional tickets'
+                    )
 
 class WizardSchema(colander.Schema):
     project_name = SchemaNode(typ=colander.String(),
@@ -141,7 +153,7 @@ class WizardSchema(colander.Schema):
     users = UsersSchema()
     new_users = NewUsersSchema()
 
-    trac = TracStdCR()
+    milestones = Milestones()
     project_cr = ProjectCR()
 
 
@@ -174,7 +186,7 @@ class Wizard(object):
         form['users']['user']['role'].widget.values = [('', '')] + [(str(role.id), role.name) for role in roles]
         form['new_users']['new_user']['role'].widget.values = [('', '')] + [(str(role.id), role.name) for role in roles]
 
-        form['trac']['milestones'].widget = SequenceWidget(min_len=1)
+        form['milestones'].widget = SequenceWidget(min_len=1)
         form['project_cr']['customer_requests'].widget = SequenceWidget()
 
         # validate input
@@ -191,69 +203,64 @@ class Wizard(object):
         return result
 
     def handle_save(self, appstruct):
-        """
-            The main handle method for the wizard.
-            {'google_docs': {'documentation_analysis': u'a',
-                 'estimations': u'c',
-                 'sent_by_customer': u'b'},
-             'new_users': [{'email': u'massimo@redturtle.it',
-                            'fullname': u'Massimo Azzolini',
-                            'role': u'customer',
-                            'send_email_howto': False}],
-             'project_name': u'one',
-             'trac': {'create_cr': False,
-                      'create_trac': False,
-                      'milestones': [{'due_date': datetime.date(2013, 1, 27),
-                                      'title': u'Le Ceste di Natale'}]},
-             'users': [{'role': u'customer', 'usernames': set([u'1', u'2'])}]}
-
-        """
+        """ The main handle method for the wizard. """
         customer = self.context.get_instance()
-        #import pdb; pdb.set_trace()
+
         #create new users
         groups = {}
         for newuser in appstruct['new_users']:
             user = User(fullname=newuser['fullname'], email=newuser['email'])
             if not groups.has_key(newuser['role']):
                 groups[newuser['role']] = []
-            DBSession.add(user)
-            DBSession.flush()
-            groups[newuser['role']].append(u'%s' % user.id)
+            groups[newuser['role']].append(user)
 
-        #create project 
-        project = Project(name=appstruct['project_name'])
-
-        #... and set manager
+        #create project and set manager
+        manager = self.request.authenticated_user
+        project = Project(name=appstruct['project_name'], 
+                        manager=manager)
 
         #set groups
         for g in appstruct['users']:
             if not groups.has_key(g['role']):
                 groups[g['role']] = []
             for u in g['usernames']:
-                groups[g['role']].append(u)
+                user = DBSession.query(User).get(u)
+                groups[g['role']].append(user)
 
-        for r, u in groups.items():
-            role = DBSession.query(Role).filter(Role.name==r)[0]
-            users = []
-            for user_id in u:
-                user = DBSession.query(User).filter(User.id==user_id)[0]
-                users.append(user)
+        for rolename, users in groups.items():
+            role = DBSession.query(Role).filter(Role.name==rolename).one()
             group = Group(roles=[role,], users=users)
             project.add_group(group)
 
-                
-
         #create CR
-
+        for cr in appstruct['customer_requests']:
+            customer_request = CustomerRequest(name=cr['title'])
+            person_types = {
+                'junior':'Junior',
+                'senior':'Senior',
+                'graphic':'Graphic',
+                'pm':'Project manager',
+                'architect':'Architect',
+                'tester':'Tester'
+            }
+            for key, value in person_types.items():
+                if cr[key]:
+                    junior_estimation = Estimations(person_type=key, 
+                                                    days=value,
+                                                    customer_request=customer_request)
+            project.add_customer_request(customer_request)
+            #BBB define the ticket
 
         #create quality CR
+        project.add_customer_request(CustomerRequest(name="Verifiche e validazioni progetto"))
+        #BBB define the two ticket
 
         #create trac
         trac = Trac(name="Trac for %s" % appstruct['project_name'])
-        trac.milestones = appstruct['trac']['milestones']
+        trac.milestones = appstruct['milestones']
         project.add_application(trac)
 
-        #create quality ticket
+        #create all the tickets
 
         #create svn
         #svn = Subversion(name="SVN")

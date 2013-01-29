@@ -17,21 +17,21 @@ from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
 class GoogleDocsSchema(colander.Schema):
     documentation_analysis = SchemaNode( typ=colander.String(),
                                 widget=TextInputWidget(
-                                            css_class='input-xxlarge',
+                                            css_class='input-xlarge',
                                             placeholder=u'Documentation and analysis, paste your google docs folder'),
                                 missing=None,
                                 title=u'')
 
     sent_by_customer = SchemaNode( typ=colander.String(),
                                 widget=TextInputWidget(
-                                            css_class='input-xxlarge',
+                                            css_class='input-xlarge',
                                             placeholder=u'Documentation sent by the customer, paste your google docs folder'),
                                 missing=None,
                                 title=u'')
 
     estimations = SchemaNode( typ=colander.String(),
                                 widget=TextInputWidget(
-                                            css_class='input-xxlarge',
+                                            css_class='input-xlarge',
                                             placeholder=u'Estimations, paste your google docs folder'),
                                 missing=None,
                                 title=u'')
@@ -47,7 +47,7 @@ class UsersSchema(colander.SequenceSchema):
                         widget=ChosenSingleWidget(),
                         missing=colander.required,
                         title=u'role')
-    user = UserSchema()
+    user = UserSchema(title='')
 
 
 class NewUsersSchema(colander.SequenceSchema):
@@ -68,17 +68,17 @@ class NewUsersSchema(colander.SequenceSchema):
                         missing=colander.required,
                         validator=colander.Function(unusedEmail, ''),
                         title=u'')
+        role = SchemaNode(typ=colander.String(),
+                        widget=ChosenSingleWidget(),
+                        missing=colander.required,
+                        title=u'Role')
         send_email_howto = SchemaNode(typ=colander.Boolean(),
                         widget=CheckboxWidget(),
                         missing=None,
                         title=u'Send e-mail'
                     )
-        role = SchemaNode(typ=colander.String(),
-                        widget=ChosenSingleWidget(),
-                        missing=colander.required,
-                        title=u'role')
 
-    new_user = NewUserSchema()
+    new_user = NewUserSchema(title='')
 
 
 class Milestones(colander.SequenceSchema):
@@ -91,7 +91,7 @@ class Milestones(colander.SequenceSchema):
                     missing=colander.required,
                     title=u'Due date')
 
-    milestone = Milestone()
+    milestone = Milestone(title='')
 
 
 class ProjectCR(colander.Schema):
@@ -130,7 +130,7 @@ class ProjectCR(colander.Schema):
                         missing=None,
                         title=u'Create related ticket')
 
-        customer_request = CustomerRequest()
+        customer_request = CustomerRequest(title='')
 
     customer_requests = CustomerRequests()
     create_quality_cr = SchemaNode(typ=colander.Boolean(),
@@ -145,9 +145,9 @@ class WizardSchema(colander.Schema):
                     widget=TextInputWidget( size=20,
                                             validator=colander.Length(max=20),
                                             css_class='projectname-select',
-                                            placeholder=u'Project name'),
+                                            placeholder=u'Enter project name'),
                     missing=colander.required,
-                    title=u'')
+                    title=u'Project name')
     google_docs = GoogleDocsSchema()
     users = UsersSchema()
     new_users = NewUsersSchema()
@@ -187,6 +187,7 @@ class Wizard(object):
 
         form['milestones'].widget = SequenceWidget(min_len=1)
         form['project_cr']['customer_requests'].widget = SequenceWidget()
+        form['project_cr'].title = ''
 
         # validate input
         controls = self.request.POST.items()

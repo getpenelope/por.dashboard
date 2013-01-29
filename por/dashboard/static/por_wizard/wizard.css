@@ -1,3 +1,13 @@
-.control-label{
-    color:red
+#label-deformField6,
+#label-deformField10,
+#label-deformField21,
+#label-deformField16
+{
+    font-size: 15px;
+    font-weight: bold;
 }
+
+/*
+#item-deformField1, #item-deformField1 .controls{
+  display: block !important;
+}*/

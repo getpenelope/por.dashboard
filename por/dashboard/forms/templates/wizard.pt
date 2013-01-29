@@ -4,11 +4,14 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       metal:use-macro="main.macros['master']">
 <body>
+    <div class="page-header" metal:fill-slot="page-header">
+      <h3>
+        Wizard project create form for ${context.get_instance()}.
+      </h3>
+    </div>
 
   <div metal:fill-slot="main">
-
     <div tal:replace="structure form" />
-
   </div>
 
 </body>

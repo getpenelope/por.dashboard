@@ -52,6 +52,7 @@ class PorInlineForm(deform.Form):
 
 class WizardForm(deform.Form):
     default_renderer = deform.ZPTRendererFactory([
+                            resource_filename('por.dashboard', 'wizard_templates'),
                             resource_filename('por.dashboard', 'deform_templates'),
                             resource_filename('deform_bootstrap', 'templates'),
                             resource_filename('deform', 'templates'),

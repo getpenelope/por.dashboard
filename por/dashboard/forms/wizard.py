@@ -3,7 +3,7 @@ import colander
 from colander import SchemaNode
 import deform
 from deform import ValidationFailure
-from deform.widget import CheckboxWidget, TextInputWidget, SelectWidget, SequenceWidget
+from deform.widget import CheckboxWidget, TextInputWidget, SequenceWidget
 from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
@@ -50,17 +50,14 @@ class UsersSchema(colander.SequenceSchema):
     user = UserSchema()
 
 
-
-
 class NewUsersSchema(colander.SequenceSchema):
     class NewUserSchema(colander.Schema):
         def unusedEmail(value):
-            try:
-                user = DBSession.query(User).filter(User.email==value).one()
+            user = DBSession.query(User.id).filter(User.email==value).first()
+            if user:
                 return "email '%s' is already associated to another user" % value
-            except:
+            else:
                 return True
-
 
         fullname = SchemaNode(typ=colander.String(),
                         widget=TextInputWidget(placeholder=u'Fullname'),
@@ -95,6 +92,7 @@ class Milestones(colander.SequenceSchema):
                     title=u'Due date')
 
     milestone = Milestone()
+
 
 class ProjectCR(colander.Schema):
     class CustomerRequests(colander.SequenceSchema):
@@ -131,15 +129,16 @@ class ProjectCR(colander.Schema):
                         widget=CheckboxWidget(),
                         missing=None,
                         title=u'Create related ticket')
-            
+
         customer_request = CustomerRequest()
 
     customer_requests = CustomerRequests()
-    create_cr = SchemaNode(typ=colander.Boolean(),
-                        widget=CheckboxWidget(),
-                        missing=None,
-                        title=u'Create CR "VERIFICHE E VALIDAZIONI PROGETTO" and 2 additional tickets'
-                    )
+    create_quality_cr = SchemaNode(typ=colander.Boolean(),
+                                   widget=CheckboxWidget(),
+                                   missing=None,
+                                   title=u'Create CR "VERIFICHE E VALIDAZIONI PROGETTO" and 2 additional tickets'
+                        )
+
 
 class WizardSchema(colander.Schema):
     project_name = SchemaNode(typ=colander.String(),
@@ -233,7 +232,7 @@ class Wizard(object):
             project.add_group(group)
 
         #create CR
-        for cr in appstruct['customer_requests']:
+        for cr in appstruct['project_cr']['customer_requests']:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
                 'junior':'Junior',
@@ -245,15 +244,16 @@ class Wizard(object):
             }
             for key, value in person_types.items():
                 if cr[key]:
-                    junior_estimation = Estimations(person_type=key, 
-                                                    days=value,
-                                                    customer_request=customer_request)
+                    Estimation(person_type=value,
+                               days=cr[key],
+                               customer_request=customer_request)
             project.add_customer_request(customer_request)
             #BBB define the ticket
 
         #create quality CR
-        project.add_customer_request(CustomerRequest(name="Verifiche e validazioni progetto"))
-        #BBB define the two ticket
+        if appstruct['project_cr']['create_quality_cr']:
+            project.add_customer_request(CustomerRequest(name="Verifiche e validazioni progetto"))
+            #BBB define the two ticket
 
         #create trac
         trac = Trac(name="Trac for %s" % appstruct['project_name'])
@@ -277,12 +277,10 @@ class Wizard(object):
                             api_uri=appstruct['google_docs']['estimations'])
             project.add_application(app)
 
-
         if appstruct['google_docs']['sent_by_customer']:
             app = GoogleDoc(name=u'sent_by_customer', 
                             api_uri=appstruct['google_docs']['sent_by_customer'])
             project.add_application(app)
-
 
         customer.add_project(project)
         raise exc.HTTPFound(location=self.request.fa_url('Customer', customer.id))

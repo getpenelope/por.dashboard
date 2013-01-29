@@ -12,7 +12,7 @@ from por.dashboard.forms import ModelView
 from por.dashboard.forms.renderers import ProjectRelationRenderer
 from por.dashboard.reports.all_entries import AllEntriesReport
 from por.dashboard.reports.views import ReportContext
-from por.dashboard.reports.wizard import Wizard
+from por.dashboard.forms.wizard import Wizard
 
 
 def configurate(config):

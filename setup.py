@@ -80,6 +80,5 @@ setup(name='por.dashboard',
       deform_library = por.dashboard.fanstatic_resources:deform_library
       deform_bootstrap_library = por.dashboard.fanstatic_resources:deform_bootstrap_library
       """,
-      paster_plugins=['pyramid'],
       )
 

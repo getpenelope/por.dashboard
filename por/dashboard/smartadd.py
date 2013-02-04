@@ -66,6 +66,7 @@ class SmartAdd(object):
                             project=project,
                             request=self.request,
                             query=query,
+                            not_invoiced=True,
                             limit=15)
         else:
             tickets = []
@@ -93,6 +94,7 @@ class SmartAdd(object):
                 return [
                         t['id']
                         for t in ticket_store.get_tickets_for_project(project=project,
+                                                                      not_invoiced=True,
                                                                       request=self.request)
                         ]
 

@@ -1,41 +1,54 @@
 import colander
+import deform
 
 from colander import SchemaNode
-import deform
 from deform import ValidationFailure
 from deform.widget import CheckboxWidget, TextInputWidget, SequenceWidget
 from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
+
 from por.models import Project, Group, DBSession, User, CustomerRequest
 from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
-
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
 
+class Definition(colander.Schema):
+    project_name = SchemaNode(typ=colander.String(),
+                    widget=TextInputWidget( css_class='input-xlarge',
+                                            validator=colander.Length(max=20),
+                                            placeholder=u'Enter project name'),
+                    missing=colander.required,
+                    title=u'Project name')
+    trac_name = SchemaNode(typ=colander.String(),
+                            widget=TextInputWidget(
+                                css_class='input-xxlarge',
+                                placeholder=u"It will appear in email's subject"),
+                            missing=None,
+                            title=u'Short name'
+                        )
 
-class GoogleDocsSchema(colander.Schema):
-    documentation_analysis = SchemaNode( typ=colander.String(),
-                                widget=TextInputWidget(
-                                            css_class='input-xlarge',
-                                            placeholder=u'Documentation and analysis, paste your google docs folder'),
-                                missing=None,
-                                title=u'')
+class GoogleDocsSchema(colander.SequenceSchema):
+    class GoogleDocSchema(colander.Schema):
+        name = SchemaNode(typ=colander.String(),
+                    widget=TextInputWidget( css_class='input-xlarge',
+                                            validator=colander.Length(max=20),
+                                            placeholder=u'Enter google doc name'),
+                    missing=colander.required,
+                    title=u'')
+        uri = SchemaNode( typ=colander.String(),
+                        widget=TextInputWidget(
+                                    css_class='input-xxlarge',
+                                    placeholder=u'Paste your google docs folder'),
+                        missing=colander.required,
+                        title=u'')
+        share_with_customer = SchemaNode(typ=colander.Boolean(),
+                        widget=CheckboxWidget(),
+                        missing=None,
+                        title=u'Share with the customer'
+                    )
 
-    sent_by_customer = SchemaNode( typ=colander.String(),
-                                widget=TextInputWidget(
-                                            css_class='input-xlarge',
-                                            placeholder=u'Documentation sent by the customer, paste your google docs folder'),
-                                missing=None,
-                                title=u'')
-
-    estimations = SchemaNode( typ=colander.String(),
-                                widget=TextInputWidget(
-                                            css_class='input-xlarge',
-                                            placeholder=u'Estimations, paste your google docs folder'),
-                                missing=None,
-                                title=u'')
-
+    google_doc = GoogleDocSchema(title='')
 
 class UsersSchema(colander.SequenceSchema):
     class UserSchema(colander.Schema):
@@ -47,6 +60,7 @@ class UsersSchema(colander.SequenceSchema):
                         widget=ChosenSingleWidget(),
                         missing=colander.required,
                         title=u'role')
+
     user = UserSchema(title='')
 
 
@@ -97,6 +111,9 @@ class Milestones(colander.SequenceSchema):
 class ProjectCR(colander.Schema):
     class CustomerRequests(colander.SequenceSchema):
         class CustomerRequest(colander.Schema):
+            """
+                #BBB specify that junior & co wants days
+            """
             title = SchemaNode(typ=colander.String(),
                         widget=TextInputWidget(placeholder=u'Title, the customer wants...'),
                         missing=colander.required,
@@ -141,17 +158,10 @@ class ProjectCR(colander.Schema):
 
 
 class WizardSchema(colander.Schema):
-    project_name = SchemaNode(typ=colander.String(),
-                    widget=TextInputWidget( size=20,
-                                            validator=colander.Length(max=20),
-                                            css_class='projectname-select',
-                                            placeholder=u'Enter project name'),
-                    missing=colander.required,
-                    title=u'Project name')
+    project = Definition()
     google_docs = GoogleDocsSchema()
     users = UsersSchema()
     new_users = NewUsersSchema()
-
     milestones = Milestones()
     project_cr = ProjectCR()
 
@@ -216,7 +226,7 @@ class Wizard(object):
 
         #create project and set manager
         manager = self.request.authenticated_user
-        project = Project(name=appstruct['project_name'], 
+        project = Project(name=appstruct['project']['project_name'], 
                         manager=manager)
 
         #set groups
@@ -233,6 +243,7 @@ class Wizard(object):
             project.add_group(group)
 
         #create CR
+        tickets = []
         for cr in appstruct['project_cr']['customer_requests']:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
@@ -250,38 +261,37 @@ class Wizard(object):
                                customer_request=customer_request)
             project.add_customer_request(customer_request)
             #BBB define the ticket
+            tickets += [{'summary':cr['title'], 
+                         'customerrequest':cr['title'],
+                         'reporter':manager,
+                         'type':'task',
+                         'priority':'major',
+                         'milestone':'Backlog',
+                         'owner':manager}]
+
 
         #create quality CR
         if appstruct['project_cr']['create_quality_cr']:
             project.add_customer_request(CustomerRequest(name="Verifiche e validazioni progetto"))
-            #BBB define the two ticket
-
-        #create trac
-        trac = Trac(name="Trac for %s" % appstruct['project_name'])
-        trac.milestones = appstruct['milestones']
-        project.add_application(trac)
-
-        #create all the tickets
-
-        #create svn
-        #svn = Subversion(name="SVN")
-        #project.add_application(svn)
+            #BBB define the two ticket: in che CR lo mettiamo?!
 
         #create google docs/folders
-        if appstruct['google_docs']['documentation_analysis']:
-            app = GoogleDoc(name=u'documentation_analysis', 
-                            api_uri=appstruct['google_docs']['documentation_analysis'])
+        for app_definition in appstruct['google_docs']:
+            app = GoogleDoc(name=app_definition['name'], 
+                            api_uri=app_definition['uri'])
+            app.share_with_customer = app_definition['share_with_customer']
             project.add_application(app)
 
-        if appstruct['google_docs']['estimations']:
-            app = GoogleDoc(name=u'estimations', 
-                            api_uri=appstruct['google_docs']['estimations'])
-            project.add_application(app)
 
-        if appstruct['google_docs']['sent_by_customer']:
-            app = GoogleDoc(name=u'sent_by_customer', 
-                            api_uri=appstruct['google_docs']['sent_by_customer'])
-            project.add_application(app)
-
+        #create trac
+        trac = Trac(name="Trac for %s" % appstruct['project']['project_name'])
+        trac.milestones = appstruct['milestones']
+        trac.tickets = tickets
+        if appstruct['project']['trac_name']:
+            trac.project_name = appstruct['project']['trac_name']
+        else:
+            trac.project_name = appstruct['project']['project_name']
+        project.add_application(trac)
+        
         customer.add_project(project)
         raise exc.HTTPFound(location=self.request.fa_url('Customer', customer.id))

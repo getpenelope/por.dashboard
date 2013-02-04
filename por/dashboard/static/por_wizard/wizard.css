@@ -1,13 +1,22 @@
-#label-deformField6,
-#label-deformField10,
-#label-deformField21,
-#label-deformField16
+.group-project fieldset > label,
+.group-google_docs > label,
+.group-users > label,
+.group-new_users > label,
+.group-milestones > label,
+.group-customer_requests > label
 {
-    font-size: 15px;
+	display: block;
+	margin-top: 25px;
+	font-size: 15px;
     font-weight: bold;
 }
 
-/*
-#item-deformField1, #item-deformField1 .controls{
-  display: block !important;
-}*/
+.group-project,
+.group-google_docs,
+.group-users,
+.group-new_users,
+.group-milestones,
+.group-customer_requests
+{
+	margin-top: 25px;
+}

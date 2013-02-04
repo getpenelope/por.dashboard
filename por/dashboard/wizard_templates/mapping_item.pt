@@ -1,4 +1,4 @@
-<div class="control-group ${field.error and 'error' or ''}"
+<div class="control-group ${field.error and 'error' or ''} group-${field.name}"
      data-deform-name="${field.name}"
      id="item-${field.oid}"
      tal:omit-tag="field.widget.hidden"

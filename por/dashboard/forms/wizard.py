@@ -7,6 +7,8 @@ from deform.widget import CheckboxWidget, TextInputWidget, SequenceWidget
 from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
+from pyramid_mailer import get_mailer
+from pyramid_mailer.message import Message
 
 from por.models import Project, Group, DBSession, User, CustomerRequest
 from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
@@ -237,11 +239,21 @@ class Wizard(object):
 
         #create new users
         groups = {}
+        settings = self.request.registry.settings
+        mailer = get_mailer(self.request)
         for newuser in appstruct['new_users']:
             user = User(fullname=newuser['fullname'], email=newuser['email'])
             if not newuser['role'] in groups:
                 groups[newuser['role']] = []
             groups[newuser['role']].append(user)
+            if newuser['send_email_howto']:
+                body = """Please go to %s/password_reset_form
+to set your password""" % self.request.application_url
+                message = Message(subject=u"New account created",
+                                  sender=settings['mail.from_address'],
+                                  recipients=[newuser['email']],
+                                  body=body)
+                mailer.send(message)
 
         #create project and set manager
         manager = self.request.authenticated_user
@@ -281,12 +293,12 @@ class Wizard(object):
             project.add_customer_request(customer_request)
             #BBB define the ticket
             tickets += [{'summary': cr['title'],
-                         'customerrequest': cr['title'],
-                         'reporter': manager,
+                         'customerrequest': customer_request,
+                         'reporter': manager.email,
                          'type': 'task',
                          'priority': 'major',
                          'milestone': 'Backlog',
-                         'owner': manager}]
+                         'owner': manager.email}]
 
         #create quality CR
         if appstruct['project_cr']['create_quality_cr']:

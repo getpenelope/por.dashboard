@@ -36,7 +36,7 @@ class GoogleDocsSchema(colander.SequenceSchema):
         name = SchemaNode(typ=colander.String(),
                           widget=TextInputWidget(css_class='input-xlarge',
                                                  validator=colander.
-                                                               length(max=20),
+                                                               Length(max=20),
                                                  placeholder=u'Enter google '
                                                              'doc name'),
                           missing=colander.required,

@@ -1,8 +1,7 @@
 1.5.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+ - change cache to filetype [amleczko]
 
 1.5.5 (2013-02-11)
 ------------------

@@ -144,6 +144,7 @@ class CustomerModelView(ModelView):
         del fs._render_fields['karma_id']
         del fs._render_fields['completion_date']
         del fs._render_fields['test_date']
+        del fs._render_fields['inception_date']
         del fs._render_fields['assistance_date']
 
         page = self.get_page(collection=list(self.request.filter_viewables(active_projects)))
@@ -164,6 +165,7 @@ class CustomerModelView(ModelView):
         del fs_active._render_fields['completion_date']
         del fs_active._render_fields['test_date']
         del fs_active._render_fields['assistance_date']
+        del fs_active._render_fields['inception_date']
 
         return self.render(fs=fs, fs_active=fs_active)
 

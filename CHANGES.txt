@@ -1,7 +1,8 @@
-1.5.6 (unreleased)
+1.5.5.1 (unreleased)
 ------------------
 
  - change cache to filetype [amleczko]
+ - add 4 QA date [amleczko]
 
 1.5.5 (2013-02-11)
 ------------------

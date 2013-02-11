@@ -110,6 +110,9 @@ def before_project_edit_render(context, event):
         fs.configure()
     #fs.customer.set(renderer=autocomplete_relation(filter_by='name'))
     #fs.manager.set(renderer=autocomplete_relation(filter_by='fullname'))
+    fs.test_date.set(instructions=_(u'the date (if any) in which the Customer has officially accepted the project as "completed"'))
+    fs.assistance_date.set(instructions=_(u'the date (if any) when the post-release assistance is ending'))
+    fs.completion_date.set(instructions=_(u'the date in which the full invoicing of the developement phase is completed, excluding post-release assistance. Usually, it is the date of the final invoice.'))
     fs.append(fs.name.required())
     del fs._render_fields['customer_requests']
     del fs._render_fields['groups']

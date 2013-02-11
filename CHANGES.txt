@@ -1,7 +1,7 @@
 1.5.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- add customization for project quality date widgets [amleczko]
 
 
 1.5.4 (2013-02-04)

@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 import colander
 import deform
 
@@ -15,22 +16,40 @@ from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
 
+WELCOME_SUBJECT = u"Benvenuto su Penelope, il sistema di Issue tracking di RedTurtle"
+WELCOME_BODY = u"""
+Sei stato abilitato all'utilizzo di Penelope, la nostra piattaforma online di gestione dei progetti e dei "trouble ticket". 
+Con Penelope potrai aprire nuovi ticket e seguire l'evoluzione delle tue segnalazioni. 
+Ci raccomandiamo di verificare che i ticket che hai aperto abbiano la marcatura "Ticket Aperto dal Cliente = SI".
+
+Utilizzando questo link: %s/password_reset_form potrai definire la tua nuova password di accesso a Penelope.
+
+RedTurtle ti ringrazia della collaborazione.
+
+====
+You were enabled as a user of Penelope, our online projects and trouble ticket management platform. 
+With penelope you will be able to open new tickets and follow the evolution of the issues you opened. 
+We recommend to double check that the tickets you open have the "Ticked opened by customer" field set at "SI" (Yes).
+
+By this link: %s/password_reset_form you can set your new Penelope password.
+
+RedTurtle thanks you for your collaboration.
+"""
+
 
 class Definition(colander.Schema):
     project_name = SchemaNode(typ=colander.String(),
                               widget=TextInputWidget(css_class='input-xlarge',
                                                      validator=colander.
                                                                Length(max=20),
-                                                     placeholder=u'Enter '
-                                                     'project name'),
+                                                     placeholder=u'Project name'),
                               missing=colander.required,
-                              title=u'Project name')
+                              title=u'')
     trac_name = SchemaNode(typ=colander.String(),
                            widget=TextInputWidget(css_class='input-xxlarge',
-                                                  placeholder=u"It will appear"
-                                                  "in email's subject"),
+                                                  placeholder=u"Short name. It will appear in email's subject"),
                            missing=None,
-                           title=u'Short name')
+                           title=u'')
 
 
 class GoogleDocsSchema(colander.SequenceSchema):
@@ -114,63 +133,56 @@ class Milestones(colander.SequenceSchema):
                               title=u'Due date')
 
     milestone = Milestone(title='')
+          
 
 
-class ProjectCR(colander.Schema):
-    class CustomerRequests(colander.SequenceSchema):
-        class CustomerRequest(colander.Schema):
-            """
-                #BBB specify that junior & co wants days
-            """
-            title = SchemaNode(typ=colander.String(),
-                               widget=TextInputWidget(placeholder=u'Title, '
-                                                      'the customer wants...'),
-                               missing=colander.required,
+class CustomerRequests(colander.SequenceSchema):
+    class CustomerRequest(colander.Schema):
+          """
+              #BBB specify that junior & co wants days
+          """
+          title = SchemaNode(typ=colander.String(),
+                             widget=TextInputWidget(placeholder=u'Title, '
+                                                    'the customer wants...'),
+                             missing=colander.required,
+                             title=u'')
+          junior = SchemaNode(typ=colander.Decimal(),
+                              widget=TextInputWidget(css_class='input-mini',
+                                                     placeholder=u'Junior'),
+                              missing=None,
+                              title=u'')
+          senior = SchemaNode(typ=colander.Decimal(),
+                              widget=TextInputWidget(css_class='input-mini',
+                                                     placeholder=u'Senior'),
+                              missing=None,
+                              title=u'')
+          graphic = SchemaNode(typ=colander.Decimal(),
+                               widget=TextInputWidget(css_class='input-mini',
+                                                      placeholder=u'Graphic'
+                                                      ),
+                               missing=None,
                                title=u'')
-            junior = SchemaNode(typ=colander.Decimal(),
-                                widget=TextInputWidget(css_class='input-mini',
-                                                       placeholder=u'Junior'),
-                                missing=None,
-                                title=u'')
-            senior = SchemaNode(typ=colander.Decimal(),
-                                widget=TextInputWidget(css_class='input-mini',
-                                                       placeholder=u'Senior'),
-                                missing=None,
-                                title=u'')
-            graphic = SchemaNode(typ=colander.Decimal(),
+          pm = SchemaNode(typ=colander.Decimal(),
+                          widget=TextInputWidget(css_class='input-mini',
+                                                 placeholder=u'PM'),
+                          missing=None,
+                          title=u'')
+          architect = SchemaNode(typ=colander.Decimal(),
                                  widget=TextInputWidget(css_class='input-mini',
-                                                        placeholder=u'Graphic'
-                                                        ),
+                                                        placeholder=u'Arch.'),
                                  missing=None,
                                  title=u'')
-            pm = SchemaNode(typ=colander.Decimal(),
-                            widget=TextInputWidget(css_class='input-mini',
-                                                   placeholder=u'PM'),
-                            missing=None,
-                            title=u'')
-            architect = SchemaNode(typ=colander.Decimal(),
-                                   widget=TextInputWidget(css_class='input-mini',
-                                                          placeholder=u'Arch.'),
-                                   missing=None,
-                                   title=u'')
-            tester = SchemaNode(typ=colander.Decimal(),
-                                widget=TextInputWidget(css_class='input-mini',
-                                                       placeholder=u'Tester'),
-                                missing=None,
-                                title=u'')
-            ticket = SchemaNode(typ=colander.Boolean(),
-                                widget=CheckboxWidget(),
-                                missing=None,
-                                title=u'Create related ticket')
+          tester = SchemaNode(typ=colander.Decimal(),
+                              widget=TextInputWidget(css_class='input-mini',
+                                                     placeholder=u'Tester'),
+                              missing=None,
+                              title=u'')
+          ticket = SchemaNode(typ=colander.Boolean(),
+                              widget=CheckboxWidget(),
+                              missing=None,
+                              title=u'Create related ticket')
 
-        customer_request = CustomerRequest(title='')
-
-    customer_requests = CustomerRequests()
-    create_quality_cr = SchemaNode(typ=colander.Boolean(),
-                                   widget=CheckboxWidget(),
-                                   missing=None,
-                                   title=u'Create CR "VERIFICHE E VALIDAZIONI'
-                                          'PROGETTO" and 2 additional tickets')
+    customer_request = CustomerRequest(title='')
 
 
 class WizardSchema(colander.Schema):
@@ -179,7 +191,7 @@ class WizardSchema(colander.Schema):
     users = UsersSchema()
     new_users = NewUsersSchema()
     milestones = Milestones()
-    project_cr = ProjectCR()
+    customer_requests = CustomerRequests()
 
 
 class Wizard(object):
@@ -217,10 +229,8 @@ class Wizard(object):
                 [(str(role.id), role.name) for role in roles]
 
         form['milestones'].widget = SequenceWidget(min_len=1)
-        form['project_cr']['customer_requests'].widget = SequenceWidget()
-        form['project_cr'].title = ''
-
-        # validate input
+        form['customer_requests'].widget = SequenceWidget(min_len=2)
+        
         controls = self.request.POST.items()
         if controls != []:
             try:
@@ -230,7 +240,14 @@ class Wizard(object):
                 result['form'] = e.render()
                 return result
 
-        result['form'] = form.render(colander.null)
+        appstruct = {'customer_requests': [{'ticket': True,
+                                            'title': u'Analisi'},
+                                           {'ticket': True,
+                                            'title': u'Supporto'}]
+                                       }
+
+
+        result['form'] = form.render(appstruct=appstruct)
         return result
 
     def handle_save(self, appstruct):
@@ -247,9 +264,8 @@ class Wizard(object):
                 groups[newuser['role']] = []
             groups[newuser['role']].append(user)
             if newuser['send_email_howto']:
-                body = """Please go to %s/password_reset_form
-to set your password""" % self.request.application_url
-                message = Message(subject=u"New account created",
+                body = WELCOME_BODY % (self.request.application_url, self.request.application_url)
+                message = Message(subject=WELCOME_SUBJECT,
                                   sender=settings['mail.from_address'],
                                   recipients=[newuser['email']],
                                   body=body)
@@ -275,7 +291,7 @@ to set your password""" % self.request.application_url
 
         #create CR
         tickets = []
-        for cr in appstruct['project_cr']['customer_requests']:
+        for cr in appstruct['customer_requests']:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
                 'junior': 'Junior',
@@ -300,12 +316,36 @@ to set your password""" % self.request.application_url
                          'milestone': 'Backlog',
                          'owner': manager.email}]
 
-        #create quality CR
-        if appstruct['project_cr']['create_quality_cr']:
-            project.add_customer_request(CustomerRequest(
-                                         name="Verifiche e validazioni "
-                                              "progetto"))
-            #BBB define the two ticket: in che CR lo mettiamo?!
+        #create project management CR and tickets
+        project_management_cr = CustomerRequest(name="Project management")
+        project.add_customer_request(project_management_cr)
+        project_management_tickets = {u'Riesami e Verifiche degli Elementi in Ingresso al progetto':u"""Questo ticket serve sia per 
+                i RIESAMI sia per le VERIFICHE del progetto. Il RIESAME risponde alle domande HO TUTTI GLI ELEMENTI PER LAVORARE? 
+                STO LAVORANDO SECONDO I REQUISITI DEL CLIENTE? In questo ticket viene registrato l'avvenuto esame degli elementi 
+                iniziali (ad esempio: il capitolato tecnico) e di tutti gli elementi emersi in corso d'opera 
+                (ad esempio: documenti integrativi). La VERIFICA risponde alle domande HO FATTO TUTTO QUELLO CHE C’ERA DA FARE? 
+                SONO PRONTO AL COLLAUDO? Cioè, per capire se la produzione è conclusa, verifico che ciò che ho prodotto sia 
+                compatibile con gli input della progettazione. POSSIBILMENTE, CI DOVREBBE ESSERE UN COMMENT CON L'ELENCO DEI 
+                DOCUMENTI CONSULTATI, E UN COMMENT PER OGNI FASE DI VERIFICA. TECNICAMENTE, QUESTO TICKET ANDREBBE CHIUSO PRIMA 
+                DI PROCEDERE ALLA VALIDAZIONE DEL PROGETTO. """,
+                                u'Validazione del progetto': u"""Questo ticket serve per la VALIDAZIONE, step finale del ciclo 
+                produttivo, prima della consegna, ovvero la registrazione del fatto che HO COLLAUDATO IL PRODOTTO IN UN CASO D’USO 
+                REALE E CI METTO LA FIRMA! La validazione delle singole funzionalità avviene a livello di ticket. Questo ticket 
+                viene completato (chiuso) per registrare l'avvenuta validazione del progetto nel suo assieme. """,
+                u'project management': u'',
+                u'incontri con il cliente': u'',
+                u'Punto interno con/tra sviluppatori': u'',
+                u'Riesame documentazione di progetto (verification)': u'',
+                u'Gestione progetto su Penelope': u''}
+        for summary, description in project_management_tickets.items():
+          tickets += [{ 'summary': summary,
+                        'description': description,
+                        'customerrequest': project_management_cr,
+                        'reporter': manager.email,
+                        'type': 'task',
+                        'priority': 'major',
+                        'milestone': 'Backlog',
+                        'owner': manager.email}]
 
         #create google docs/folders
         for app_definition in appstruct['google_docs']:

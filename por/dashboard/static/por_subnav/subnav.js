@@ -8,7 +8,7 @@
 $(document).ready(function() {
     "use strict";
 
-    if (window.top !== window) {
+    if (window.top !== window.self) {
         // inside iframe, don't touch anything
         return;
     }

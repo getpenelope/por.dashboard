@@ -4,7 +4,11 @@ import sys
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.md')).read()
+README = """por.dashboard
+=============
+
+for more details visit: http://getpenelope.github.com/"""
+
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
@@ -46,7 +50,7 @@ requires = [
     'pyramid_fanstatic',
     'js.lesscss',
     'deform_bootstrap',
-    'Beaker==1.5.4',
+    'Beaker',
     'js.jquery_datatables==1.8.2',
     'unittest2',
     ]
@@ -55,7 +59,7 @@ if sys.version_info[:3] < (2,5,0):
     requires.append('pysqlite')
 
 setup(name='por.dashboard',
-      version='1.5.3',
+      version='1.5.6.dev0',
       description='Penelope main package',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -64,7 +68,7 @@ setup(name='por.dashboard',
         ],
       author='Penelope Team',
       author_email='penelopedev@redturtle.it',
-      url='https://getpenelope.github.com',
+      url='http://getpenelope.github.com',
       keywords='web wsgi bfg pylons pyramid',
       namespace_packages=['por'],
       packages=find_packages(),
@@ -80,6 +84,5 @@ setup(name='por.dashboard',
       deform_library = por.dashboard.fanstatic_resources:deform_library
       deform_bootstrap_library = por.dashboard.fanstatic_resources:deform_bootstrap_library
       """,
-      paster_plugins=['pyramid'],
       )
 

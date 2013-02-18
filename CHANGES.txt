@@ -1,6 +1,25 @@
-1.5.3 (unreleased)
+1.5.5.1 (unreleased)
+------------------
+
+ - change cache to filetype [amleczko]
+ - add 4 QA date [amleczko]
+ - wizard added [massimoazzolini]
+
+1.5.5 (2013-02-11)
+------------------
+
+- add customization for project quality date widgets [amleczko]
+
+
+1.5.4 (2013-02-04)
+------------------
+
+ - refactor non-invoiced tickets validation [amleczko]
+
+
+1.5.3 (2013-01-30)
 ------------------
  - move to github [amleczko]
  - added buttons to switch between reports keeping the same parameters [massimoazzolini]
  - tickets of invoiced customerrequest cannot be charged of hours [massimoazzolini]
- - wizard added [massimoazzolini]
+ - add karma integrations [amleczko]

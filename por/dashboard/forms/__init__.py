@@ -3,7 +3,7 @@ import zope.component.event
 import json
 
 from chameleon import PageTemplate
-from beaker.cache import cache_region
+#from beaker.cache import cache_region
 from zope.interface import alsoProvides
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
@@ -273,7 +273,7 @@ def security_create(context, request):
         return exc.HTTPForbidden()
 
 
-@cache_region('calculate_matrix')
+#@cache_region('calculate_matrix')
 def set_template(body):
     return PageTemplate(body)
 

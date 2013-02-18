@@ -166,11 +166,17 @@ class CustomerModelView(ModelView):
         del fs._render_fields['customer']
         del fs._render_fields['groups']
         del fs._render_fields['customer_requests']
+        del fs._render_fields['karma_id']
+        del fs._render_fields['completion_date']
+        del fs._render_fields['test_date']
+        del fs._render_fields['inception_date']
+        del fs._render_fields['assistance_date']
 
         page = self.get_page(collection=list(self.request.filter_viewables(active_projects)))
         fs_active = self.get_grid()
         fs_active = fs_active.bind(instances=page, request=self.request)
         fs_active.configure(readonly=True)
+        del fs_active._render_fields['karma_id']
         del fs_active._render_fields['applications']
         del fs_active._render_fields['time_entries']
         del fs_active._render_fields['favorite_users']
@@ -181,6 +187,10 @@ class CustomerModelView(ModelView):
         del fs_active._render_fields['author']
         del fs_active._render_fields['groups']
         del fs_active._render_fields['customer_requests']
+        del fs_active._render_fields['completion_date']
+        del fs_active._render_fields['test_date']
+        del fs_active._render_fields['assistance_date']
+        del fs_active._render_fields['inception_date']
 
         return self.render(fs=fs, fs_active=fs_active)
 

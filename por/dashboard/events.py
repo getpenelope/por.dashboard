@@ -100,7 +100,8 @@ def before_project_render(context, event):
     del fs._render_fields['applications']
     del fs._render_fields['time_entries']
     del fs._render_fields['favorite_users']
-
+    if not getattr(context, 'karma_id', None): # remove the field if it's empty
+        del fs._render_fields['karma_id']
 
 @events.subscriber([Project, events.IBeforeEditRenderEvent])
 def before_project_edit_render(context, event):
@@ -109,12 +110,14 @@ def before_project_edit_render(context, event):
         fs.configure()
     #fs.customer.set(renderer=autocomplete_relation(filter_by='name'))
     #fs.manager.set(renderer=autocomplete_relation(filter_by='fullname'))
+    fs.test_date.set(instructions=_(u'the date (if any) in which the Customer has officially accepted the project as "completed"'))
+    fs.assistance_date.set(instructions=_(u'the date (if any) when the post-release assistance is ending'))
+    fs.completion_date.set(instructions=_(u'the date in which the full invoicing of the developement phase is completed, excluding post-release assistance. Usually, it is the date of the final invoice.'))
     fs.append(fs.name.required())
     del fs._render_fields['customer_requests']
     del fs._render_fields['groups']
     pk_to_add = [a for a in fs._raw_fields() if a.name == 'id']
     fs.append(pk_to_add[0].set(renderer=HiddenFieldRenderer))
-
 
 @events.subscriber([Project, events.IBeforeNewRenderEvent])
 def before_project_new_render(context, event):
@@ -122,12 +125,16 @@ def before_project_new_render(context, event):
     bind_customer(context, event)
     fs = event.kwargs['fs']
     del fs._render_fields['customer']
+    karma = [a for a in fs._raw_fields() if a.name == 'karma_id']
     pk_to_add = [a for a in fs._raw_fields() if a.name == 'id']
     items = list(tuple(fs._render_fields.iteritems()))
+    items.insert(0, (karma[0].name, karma[0]))
     items.insert(0, (pk_to_add[0].name, pk_to_add[0]))
     fs._render_fields = OrderedDict(items)
     fs._render_fields['id'].validators = []
     fs._render_fields['id']._renderer = None
+    fs._render_fields['karma_id'].validators = []
+    fs._render_fields['karma_id']._renderer = None
 
 
 @events.subscriber([Project, events.IBeforeValidateEvent])

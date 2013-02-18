@@ -89,6 +89,7 @@ class MyEntriesReport(object):
         qry = self.request.filter_viewables(qry)
         entries_by_date = []
         entries_count = 0
+        
         for k, g in itertools.groupby(qry, operator.attrgetter('date')):
             g = list(g)
             entries_by_date.append((k, g))
@@ -125,7 +126,7 @@ class MyEntriesReport(object):
                     'saved_query_form': render_saved_query_form(self.request),
                     'result_table': None
                     }
-
+        
         current_uid = self.request.authenticated_user.id
         entries_by_date, entries_count = self.search(author_id=current_uid,
                                                      limit=limit,

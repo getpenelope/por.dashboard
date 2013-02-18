@@ -142,53 +142,6 @@ def configurate(config):
         view=ProjectModelView)
 
 
-#add_group = actions.UIButton(id='add_group',
-#    content='Add group',
-#    permission='new',
-#    _class='btn btn-success',
-#    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'add_group')"))
-
-#add_application = actions.UIButton(id='add_application',
-#    content='Add application',
-#    permission='new',
-#    _class='btn btn-success',
-#    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'add_application')"))
-
-#add_customer_request = actions.UIButton(id='add_customer_request',
-#    content='Add customer request',
-#    permission='edit',
-#    _class='btn btn-success',
-#    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'add_customer_request')"))
-
-
-#project_tabs = actions.Actions(actions.TabAction("show",
-#    content="Project",
-#    attrs=dict(href="request.fa_url(request.model_name, request.model_id, '')")),)
-    #    actions.TabAction("customer_requests",
-    #    content="Customer requests",
-    #    permission='view',
-    #    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'customer_requests')")),
-    #actions.TabAction("metadata",
-    #    content="Metadata",
-    #    permission="metadata",
-    #    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'metadata')")),
-    #actions.TabAction("configuration",
-    #    content="Configuration",
-    #    permission="edit",
-    #    children=('applications', 'configuration'),
-    #    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'configuration')")), )
-
-#project_configuration_subtabs = actions.Actions(actions.TabAction("configuration",
-#    content="Users",
-#    permission='edit',
-#    attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'configuration')")),
-#    actions.TabAction("applications",
-#        content="Applications",
-#        permission='edit',
-#        attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'applications')")),
-#)
-
-
 class ProjectModelView(ModelView):
     actions_categories = ('buttons', 'tabs', 'subtabs')
     defaults_actions = deepcopy(actions.defaults_actions)

@@ -22,3 +22,4 @@
  - added buttons to switch between reports keeping the same parameters [massimoazzolini]
  - tickets of invoiced customerrequest cannot be charged of hours [massimoazzolini]
  - add karma integrations [amleczko]
+ - fix handling view permission in relation widget [amleczko]

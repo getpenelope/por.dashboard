@@ -104,12 +104,16 @@ class RelationRenderer(fields.SelectFieldRenderer):
                     href=self.request.fa_url(value.__class__.__name__, fields._pk(value)))
             else:
                 return h.content_tag('span', self.stringify_value(value, as_html=True))
-
-        return h.literal(',&nbsp;')\
-                 .join([h.content_tag('a',
-                                      self.stringify_value(item, as_html=True),
-                                      href=self.request.fa_url(item.__class__.__name__, fields._pk(item)))\
-              for item in value if self.request.has_permission('view', item)])
+        else:
+            html = []
+            for item in value:
+                if self.request.has_permission('view', item):
+                    html.append(h.content_tag('a',
+                                self.stringify_value(item, as_html=True),
+                                href=self.request.fa_url(item.__class__.__name__, fields._pk(item))))
+                else:
+                    html.append(h.content_tag('span', self.stringify_value(item, as_html=True)))
+            return h.literal(',&nbsp;').join(html)
 
 
 class PORDateFieldRenderer(DateFieldRenderer):

@@ -8,33 +8,77 @@ from deform.widget import CheckboxWidget, TextInputWidget, SequenceWidget
 from deform_bootstrap.widget import ChosenSingleWidget, ChosenMultipleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
+from pyramid.i18n import TranslationStringFactory
 from pyramid_mailer import get_mailer
 from pyramid_mailer.message import Message
 
 from por.models import Project, Group, DBSession, User, CustomerRequest
+from por.models.dashboard import ApplicationACL
 from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
 
-WELCOME_SUBJECT = u"Benvenuto su Penelope, il sistema di Issue tracking di RedTurtle"
-WELCOME_BODY = u"""
-Sei stato abilitato all'utilizzo di Penelope, la nostra piattaforma online di gestione dei progetti e dei "trouble ticket". 
-Con Penelope potrai aprire nuovi ticket e seguire l'evoluzione delle tue segnalazioni. 
-Ci raccomandiamo di verificare che i ticket che hai aperto abbiano la marcatura "Ticket Aperto dal Cliente = SI".
+_ = TranslationStringFactory('por')
 
-Utilizzando questo link: %s/password_reset_form potrai definire la tua nuova password di accesso a Penelope.
+WELCOME_SUBJECT = _(u"Benvenuto su Penelope, il sistema di Issue tracking di "\
+                    "RedTurtle")
+
+WELCOME_BODY = _(u"""
+Sei stato abilitato all'utilizzo di Penelope, la nostra piattaforma online di
+gestione dei progetti e dei "trouble ticket". Con Penelope potrai aprire nuovi
+ticket e seguire l'evoluzione delle tue segnalazioni. Ci raccomandiamo di
+verificare che i ticket che hai aperto abbiano la marcatura "Ticket Aperto dal
+Cliente = SI".
+
+Utilizzando questo link: %s/password_reset_form potrai definire la tua nuova
+password di accesso a Penelope.
 
 RedTurtle ti ringrazia della collaborazione.
 
 ====
-You were enabled as a user of Penelope, our online projects and trouble ticket management platform. 
-With penelope you will be able to open new tickets and follow the evolution of the issues you opened. 
-We recommend to double check that the tickets you open have the "Ticked opened by customer" field set at "SI" (Yes).
+You were enabled as a user of Penelope, our online projects and trouble ticket
+management platform. With penelope you will be able to open new tickets and
+follow the evolution of the issues you opened. We recommend to double check
+that the tickets you open have the "Ticked opened by customer" field set at
+"SI" (Yes).
 
 By this link: %s/password_reset_form you can set your new Penelope password.
 
 RedTurtle thanks you for your collaboration.
-"""
+""")
+
+PM_TICKETS = {
+ _(u'Riesami e Verifiche degli Elementi in Ingresso al progetto'):
+ _(u"""Questo ticket serve sia per i RIESAMI sia per le VERIFICHE del progetto.
+Il RIESAME risponde alle domande HO TUTTI GLI ELEMENTI PER LAVORARE?
+STO LAVORANDO SECONDO I REQUISITI DEL CLIENTE? In questo ticket viene
+registrato l'avvenuto esame degli elementi iniziali (ad esempio: il
+capitolato tecnico) e di tutti gli elementi emersi in corso d'opera (ad
+esempio: documenti integrativi). La VERIFICA risponde alle domande HO
+FATTO TUTTO QUELLO CHE C’ERA DA FARE? SONO PRONTO AL COLLAUDO? Cioè, per
+capire se la produzione è conclusa, verifico che ciò che ho prodotto sia
+compatibile con gli input della progettazione. POSSIBILMENTE, CI DOVREBBE
+ESSERE UN COMMENT CON L'ELENCO DEI DOCUMENTI CONSULTATI, E UN COMMENT PER
+OGNI FASE DI VERIFICA. TECNICAMENTE, QUESTO TICKET ANDREBBE CHIUSO PRIMA
+DI PROCEDERE ALLA VALIDAZIONE DEL PROGETTO."""),
+
+ _(u'Validazione del progetto'):
+ _(u"""Questo ticket serve per la VALIDAZIONE, step finale del ciclo
+produttivo, prima della consegna, ovvero la registrazione del fatto che
+HO COLLAUDATO IL PRODOTTO IN UN CASO D’USO REALE E CI METTO LA FIRMA! La
+validazione delle singole funzionalità avviene a livello di ticket. Questo
+ticket viene completato (chiuso) per registrare l'avvenuta validazione del
+progetto nel suo assieme. """),
+
+ _(u'project management'): u'',
+
+ _(u'incontri con il cliente'): u'',
+
+ _(u'Punto interno con/tra sviluppatori'): u'',
+
+ _(u'Riesame documentazione di progetto (verification)'): u'',
+
+ _(u'Gestione progetto su Penelope'): u''}
 
 
 class Definition(colander.Schema):
@@ -47,7 +91,8 @@ class Definition(colander.Schema):
                               title=u'')
     trac_name = SchemaNode(typ=colander.String(),
                            widget=TextInputWidget(css_class='input-xxlarge',
-                                                  placeholder=u"Short name. It will appear in email's subject"),
+                                                  placeholder=u"Short name. "\
+                                          "It will appear in email's subject"),
                            missing=None,
                            title=u'')
 
@@ -133,7 +178,6 @@ class Milestones(colander.SequenceSchema):
                               title=u'Due date')
 
     milestone = Milestone(title='')
-          
 
 
 class CustomerRequests(colander.SequenceSchema):
@@ -230,7 +274,7 @@ class Wizard(object):
 
         form['milestones'].widget = SequenceWidget(min_len=1)
         form['customer_requests'].widget = SequenceWidget(min_len=2)
-        
+
         controls = self.request.POST.items()
         if controls != []:
             try:
@@ -245,7 +289,6 @@ class Wizard(object):
                                            {'ticket': True,
                                             'title': u'Supporto'}]
                                        }
-
 
         result['form'] = form.render(appstruct=appstruct)
         return result
@@ -264,7 +307,8 @@ class Wizard(object):
                 groups[newuser['role']] = []
             groups[newuser['role']].append(user)
             if newuser['send_email_howto']:
-                body = WELCOME_BODY % (self.request.application_url, self.request.application_url)
+                body = WELCOME_BODY % (self.request.application_url,
+                                       self.request.application_url)
                 message = Message(subject=WELCOME_SUBJECT,
                                   sender=settings['mail.from_address'],
                                   recipients=[newuser['email']],
@@ -319,24 +363,7 @@ class Wizard(object):
         #create project management CR and tickets
         project_management_cr = CustomerRequest(name="Project management")
         project.add_customer_request(project_management_cr)
-        project_management_tickets = {u'Riesami e Verifiche degli Elementi in Ingresso al progetto':u"""Questo ticket serve sia per 
-                i RIESAMI sia per le VERIFICHE del progetto. Il RIESAME risponde alle domande HO TUTTI GLI ELEMENTI PER LAVORARE? 
-                STO LAVORANDO SECONDO I REQUISITI DEL CLIENTE? In questo ticket viene registrato l'avvenuto esame degli elementi 
-                iniziali (ad esempio: il capitolato tecnico) e di tutti gli elementi emersi in corso d'opera 
-                (ad esempio: documenti integrativi). La VERIFICA risponde alle domande HO FATTO TUTTO QUELLO CHE C’ERA DA FARE? 
-                SONO PRONTO AL COLLAUDO? Cioè, per capire se la produzione è conclusa, verifico che ciò che ho prodotto sia 
-                compatibile con gli input della progettazione. POSSIBILMENTE, CI DOVREBBE ESSERE UN COMMENT CON L'ELENCO DEI 
-                DOCUMENTI CONSULTATI, E UN COMMENT PER OGNI FASE DI VERIFICA. TECNICAMENTE, QUESTO TICKET ANDREBBE CHIUSO PRIMA 
-                DI PROCEDERE ALLA VALIDAZIONE DEL PROGETTO. """,
-                                u'Validazione del progetto': u"""Questo ticket serve per la VALIDAZIONE, step finale del ciclo 
-                produttivo, prima della consegna, ovvero la registrazione del fatto che HO COLLAUDATO IL PRODOTTO IN UN CASO D’USO 
-                REALE E CI METTO LA FIRMA! La validazione delle singole funzionalità avviene a livello di ticket. Questo ticket 
-                viene completato (chiuso) per registrare l'avvenuta validazione del progetto nel suo assieme. """,
-                u'project management': u'',
-                u'incontri con il cliente': u'',
-                u'Punto interno con/tra sviluppatori': u'',
-                u'Riesame documentazione di progetto (verification)': u'',
-                u'Gestione progetto su Penelope': u''}
+        project_management_tickets = PM_TICKETS
         for summary, description in project_management_tickets.items():
           tickets += [{ 'summary': summary,
                         'description': description,
@@ -351,7 +378,10 @@ class Wizard(object):
         for app_definition in appstruct['google_docs']:
             app = GoogleDoc(name=app_definition['name'],
                             api_uri=app_definition['uri'])
-            app.share_with_customer = app_definition['share_with_customer']
+            if app_definition['share_with_customer']:
+                acl = ApplicationACL(role_id='customer',
+                                     permission_name='view')
+                acl.project = app
             project.add_application(app)
 
         #create trac

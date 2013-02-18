@@ -12,7 +12,7 @@ from por.dashboard.forms import ModelView
 from por.dashboard.forms.renderers import ProjectRelationRenderer
 from por.dashboard.reports.all_entries import AllEntriesReport
 from por.dashboard.reports.views import ReportContext
-
+from por.dashboard.forms.wizard import Wizard
 
 
 def configurate(config):
@@ -55,6 +55,25 @@ def configurate(config):
         model='por.models.dashboard.Customer',
         view=CustomerModelView)
 
+    #custom view for adding a project to a customer
+    config.formalchemy_model_view('admin',
+        request_method='GET',
+        permission='new',
+        name='wizard',
+        attr='render',
+        renderer='por.dashboard.forms:templates/wizard.pt',
+        model='por.models.dashboard.Customer',
+        view=Wizard)
+    #custom view for adding a project to a customer
+    config.formalchemy_model_view('admin',
+        request_method='POST',
+        permission='new',
+        name='wizard',
+        attr='render',
+        renderer='por.dashboard.forms:templates/wizard.pt',
+        model='por.models.dashboard.Customer',
+        view=Wizard)
+
     #custom view for customer projects
     config.formalchemy_model_view('admin',
         request_method='GET',
@@ -81,6 +100,12 @@ add_project = actions.UIButton(id='add_project',
     _class='btn btn-success',
     attrs=dict(href="request.fa_url('Customer', request.model_id, 'add_project')"))
 
+add_project_wizard = actions.UIButton(id='add_project_wizard',
+    content='Add project wizard',
+    permission='new',
+    _class='btn btn-success',
+    attrs=dict(href="request.fa_url('Customer', request.model_id, 'wizard')"))
+
 customer_tabs = actions.Actions(actions.TabAction("show",
     content="Customer",
     attrs=dict(href="request.fa_url('Customer', request.model_id, '')")),
@@ -101,7 +126,7 @@ class CustomerModelView(ModelView):
 
     defaults_actions = deepcopy(actions.defaults_actions)
     defaults_actions.update(show_buttons=actions.Actions(actions.edit))
-    defaults_actions['customer_projects_buttons'] = actions.Actions(add_project)
+    defaults_actions['customer_projects_buttons'] = actions.Actions(add_project, add_project_wizard)
     defaults_actions.update(show_tabs=customer_tabs)
     defaults_actions.update(customer_projects_tabs=customer_tabs)
     defaults_actions.update(customer_time_entries_tabs=customer_tabs)

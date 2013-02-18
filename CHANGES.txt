@@ -3,6 +3,7 @@
 
  - change cache to filetype [amleczko]
  - add 4 QA date [amleczko]
+ - wizard added [massimoazzolini]
 
 1.5.5 (2013-02-11)
 ------------------

@@ -287,7 +287,10 @@ class Wizard(object):
         appstruct = {'customer_requests': [{'ticket': True,
                                             'title': u'Analisi'},
                                            {'ticket': True,
-                                            'title': u'Supporto'}]
+                                            'title': u'Supporto'},
+                                           {'ticket': True,
+                                            'title': u'Project management'},
+                                          ]
                                        }
 
         result['form'] = form.render(appstruct=appstruct)
@@ -335,7 +338,7 @@ class Wizard(object):
 
         #create CR
         tickets = []
-        for cr in appstruct['customer_requests']:
+        for cr in [cr for cr in appstruct['customer_requests'] if cr['title']!=u'Project management']:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
                 'junior': 'Junior',
@@ -361,8 +364,10 @@ class Wizard(object):
                          'owner': manager.email}]
 
         #create project management CR and tickets
+        #if not u'Project management' in [cr['title'] for cr in appstruct['customer_requests']]:
         project_management_cr = CustomerRequest(name="Project management")
         project.add_customer_request(project_management_cr)
+
         project_management_tickets = PM_TICKETS
         for summary, description in project_management_tickets.items():
           tickets += [{ 'summary': summary,

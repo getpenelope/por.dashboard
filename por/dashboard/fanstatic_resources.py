@@ -107,7 +107,9 @@ add_entry_from_ticket = Group([
                                 Resource(por_library, 'por_add_entry/add_entry_from_ticket.css'),
                                 ])
 
-wizard = Group([ Resource(por_library, 'por_wizard/wizard.css') ])
+wizard = Group([ Resource(por_library, 'por_wizard/wizard.css'),
+                 Resource(por_library, 'por_wizard/wizard.js', depends=[jquery])
+                 ])
 
 add_entry = Group([
                     Resource(por_library, 'por_add_entry/add_entry.js', depends=[jquery]),

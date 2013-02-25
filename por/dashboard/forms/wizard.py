@@ -81,6 +81,21 @@ progetto nel suo assieme. """),
  _(u'Gestione progetto su Penelope'): u''}
 
 
+@colander.deferred
+def username_widgets(node, kw):
+    users = DBSession.query(User).order_by(User.fullname)
+    values = [('', '')] + [(str(u.id), u.fullname) for u in users]
+    return ChosenMultipleWidget(placeholder=_(u'Select people'),
+                                values=values)
+
+
+@colander.deferred
+def roles_widgets(node, kw):
+    roles = DBSession.query(Role).order_by(Role.name)
+    values = [('', '')] + [(str(role.id), role.name) for role in roles]
+    return ChosenSingleWidget(values=values)
+
+
 class Definition(colander.Schema):
     project_name = SchemaNode(typ=colander.String(),
                               widget=TextInputWidget(css_class='input-xlarge',
@@ -124,12 +139,11 @@ class GoogleDocsSchema(colander.SequenceSchema):
 class UsersSchema(colander.SequenceSchema):
     class UserSchema(colander.Schema):
         usernames = SchemaNode(deform.Set(allow_empty=False),
-                               widget=ChosenMultipleWidget(placeholder=
-                                                           u'Select people'),
+                               widget=username_widgets,
                                missing=colander.required,
                                title=u'')
         role = SchemaNode(typ=colander.String(),
-                          widget=ChosenSingleWidget(),
+                          widget=roles_widgets,
                           missing=colander.required,
                           title=u'role')
 
@@ -156,7 +170,7 @@ class NewUsersSchema(colander.SequenceSchema):
                            validator=colander.Function(unusedEmail, ''),
                            title=u'')
         role = SchemaNode(typ=colander.String(),
-                          widget=ChosenSingleWidget(),
+                          widget=roles_widgets,
                           missing=colander.required,
                           title=u'Role')
         send_email_howto = SchemaNode(typ=colander.Boolean(),
@@ -232,10 +246,10 @@ class CustomerRequests(colander.SequenceSchema):
 class WizardSchema(colander.Schema):
     project = Definition()
     google_docs = GoogleDocsSchema()
-    users = UsersSchema()
-    new_users = NewUsersSchema()
-    milestones = Milestones()
-    customer_requests = CustomerRequests()
+    users = UsersSchema(widget=SequenceWidget(min_len=1))
+    new_users = NewUsersSchema(widget=SequenceWidget())
+    milestones = Milestones(widget=SequenceWidget(min_len=1))
+    customer_requests = CustomerRequests(widget=SequenceWidget(min_len=3))
 
 
 class Wizard(object):
@@ -250,7 +264,7 @@ class Wizard(object):
         result['main'] = get_renderer(
                 'por.dashboard.forms:templates/master.pt').implementation()
 
-        schema = WizardSchema().clone()
+        schema = WizardSchema().bind()
         wizard_fanstatic.need()
         form = WizardForm(schema,
                           formid='wizard',
@@ -259,21 +273,6 @@ class Wizard(object):
                                  SubmitButton(title=u'Submit'),
                                  ResetButton(title=u'Reset'),
                           ])
-        form['new_users'].widget = SequenceWidget()
-        form['users'].widget = SequenceWidget(min_len=1)
-
-        users = DBSession.query(User).order_by(User.fullname)
-        form['users']['user']['usernames'].widget.values = [('', '')] + \
-                                      [(str(u.id), u.fullname) for u in users]
-
-        roles = DBSession.query(Role).order_by(Role.name)
-        form['users']['user']['role'].widget.values = [('', '')] + \
-                                 [(str(role.id), role.name) for role in roles]
-        form['new_users']['new_user']['role'].widget.values = [('', '')] + \
-                [(str(role.id), role.name) for role in roles]
-
-        form['milestones'].widget = SequenceWidget(min_len=1)
-        form['customer_requests'].widget = SequenceWidget(min_len=2)
 
         controls = self.request.POST.items()
         if controls != []:
@@ -338,7 +337,8 @@ class Wizard(object):
 
         #create CR
         tickets = []
-        for cr in [cr for cr in appstruct['customer_requests'] if cr['title']!=u'Project management']:
+        for cr in [cr for cr in appstruct['customer_requests'] \
+                                    if cr['title']!=u'Project management']:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
                 'junior': 'Junior',
@@ -364,7 +364,6 @@ class Wizard(object):
                          'owner': manager.email}]
 
         #create project management CR and tickets
-        #if not u'Project management' in [cr['title'] for cr in appstruct['customer_requests']]:
         project_management_cr = CustomerRequest(name="Project management")
         project.add_customer_request(project_management_cr)
 

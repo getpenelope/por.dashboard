@@ -5,8 +5,8 @@ import datetime
 import itertools
 import logging
 import operator
-
 import colander
+
 from colander import SchemaNode
 
 from deform.widget import SelectWidget
@@ -26,6 +26,7 @@ from por.dashboard.reports import fields
 from por.dashboard.reports.queries import qry_active_projects, te_filter_by_customer_requests, NullCustomerRequest, filter_users_with_timeentries
 from por.dashboard.reports.validators import validate_period
 from por.dashboard.reports.favourites import render_saved_query_form
+from por.dashboard.events import AfterEntryCreatedEvent
 
 from por.models import DBSession, Project, TimeEntry, User, CustomerRequest
 from por.models.tickets import ticket_store
@@ -196,8 +197,9 @@ class CustomerReport(object):
                         'sensitive': ['no', 'yes'][tkt['sensitive']],
                         'hours': te.hours,
                     }
-            if te.project.karma_id:
-                entry['karma'] = te.project.karma_id
+
+            event = AfterEntryCreatedEvent(entry, te)
+            self.request.registry.notify(event)
 
             rows.append(entry)
 
@@ -302,7 +304,6 @@ class CustomerReport(object):
     @view_config(name='report_custom', route_name='reports', renderer='skin', permission='reports_custom')
     def __call__(self):
         schema = self.CustomSchema(validator=validate_period).clone()
-
         projects = self.request.filter_viewables(qry_active_projects())
 
         # select customers that have some active project

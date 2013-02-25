@@ -100,8 +100,6 @@ def before_project_render(context, event):
     del fs._render_fields['applications']
     del fs._render_fields['time_entries']
     del fs._render_fields['favorite_users']
-    if not getattr(context, 'karma_id', None): # remove the field if it's empty
-        del fs._render_fields['karma_id']
 
 @events.subscriber([Project, events.IBeforeEditRenderEvent])
 def before_project_edit_render(context, event):
@@ -125,16 +123,12 @@ def before_project_new_render(context, event):
     bind_customer(context, event)
     fs = event.kwargs['fs']
     del fs._render_fields['customer']
-    karma = [a for a in fs._raw_fields() if a.name == 'karma_id']
     pk_to_add = [a for a in fs._raw_fields() if a.name == 'id']
     items = list(tuple(fs._render_fields.iteritems()))
-    items.insert(0, (karma[0].name, karma[0]))
     items.insert(0, (pk_to_add[0].name, pk_to_add[0]))
     fs._render_fields = OrderedDict(items)
     fs._render_fields['id'].validators = []
     fs._render_fields['id']._renderer = None
-    fs._render_fields['karma_id'].validators = []
-    fs._render_fields['karma_id']._renderer = None
 
 
 @events.subscriber([Project, events.IBeforeValidateEvent])
@@ -328,13 +322,6 @@ def bind_project(context, event):
     fs.project_id.is_raw_foreign_key = False
     fs.project_id.set(renderer=HiddenFieldRenderer)
     fs.append(fs.project_id)
-#    parent_url = event.request.fa_url(event.request.model_instance.__class__.__name__,
-#        event.request.model_id)
-#    fs.append(Field('parent_url', value=parent_url).hidden())
-#    if event.request.POST and not event.request.POST['next']:
-#        next_url = [v for k, v in event.request.POST.items() if k.endswith('parent_url')]
-#        if next_url:
-#            event.request.POST.update({'next': next_url[0]})
 
 
 def bind_customer(context, event):
@@ -344,12 +331,11 @@ def bind_customer(context, event):
     fs.customer_id.is_raw_foreign_key = False
     fs.customer_id.set(renderer=HiddenFieldRenderer)
     fs.append(fs.customer_id)
-#    parent_url = event.request.fa_url(event.request.model_instance.__class__.__name__,
-#        event.request.model_id)
-#    fs.append(Field('parent_url', value=parent_url).hidden())
-#    if event.request.POST and not event.request.POST['next']:
-#        next_url = [v for k, v in event.request.POST.items() if k.endswith('parent_url')]
-#        if next_url:
-#            event.request.POST.update({'next': next_url[0]})
 
 
+class AfterEntryCreatedEvent(object):
+    """A search entry was created"""
+
+    def __init__(self, entry, timeentry):
+        self.entry = entry
+        self.timeentry = timeentry

@@ -1,8 +1,7 @@
 1.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- move karma to por.karma package [amleczko]
 
 1.6.0 (2013-02-18)
 ------------------

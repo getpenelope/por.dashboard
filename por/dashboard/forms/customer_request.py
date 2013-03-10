@@ -9,6 +9,7 @@ from fa.bootstrap import actions
 
 from por.dashboard.forms import ModelView
 from por.dashboard.forms import workflow
+from por.dashboard.forms.fast_ticketing import FastTicketing
 from por.models import dashboard
 
 
@@ -83,6 +84,25 @@ def configurate(config):
                                   renderer='por.dashboard.forms:templates/customer_request_tickets.pt',
                                   view=CustomerRequestModelView)
 
+    #custom view for adding tickets to a customerrequest
+    config.formalchemy_model_view('admin',
+                                  request_method='GET',
+                                  permission='new',
+                                  name='fastticketing',
+                                  attr='render',
+                                  renderer='por.dashboard.forms:templates/fast_ticketing.pt',
+                                  model='por.models.dashboard.CustomerRequest',
+                                  view=FastTicketing)
+    #custom view for adding tickets to a customerrequest
+    config.formalchemy_model_view('admin',
+                                  request_method='POST',
+                                  permission='new',
+                                  name='fastticketing',
+                                  attr='render',
+                                  renderer='por.dashboard.forms:templates/fast_ticketing.pt',
+                                  model='por.models.dashboard.CustomerRequest',
+                                  view=FastTicketing)
+
 
 customer_request_tabs = actions.TabsActions(actions.TabAction("show",
                                                               content="View",
@@ -104,6 +124,12 @@ add_ticket = actions.UIButton(id='add_ticket',
                               _class='btn btn-success',
                               attrs=dict(href="request.model_instance.add_ticket_url(request)"))
 
+add_fast_ticketing = actions.UIButton(id='add_fast_ticketing',
+                              content='Fast add tickets',
+                              permission='new',
+                              _class='btn btn-success',
+                              attrs=dict(href="request.fa_url('CustomerRequest', request.model_id, 'fastticketing')"))
+
 
 class CustomerRequestListingView(ModelView):
     defaults_actions = deepcopy(actions.defaults_actions)
@@ -124,6 +150,7 @@ class CustomerRequestModelView(ModelView):
         self.defaults_actions.update(show_tabs = cr_actions)
         self.defaults_actions.update(estimations_tabs = cr_actions)
         self.defaults_actions['show_buttons'].append(add_ticket)
+        self.defaults_actions['show_buttons'].append(add_fast_ticketing)
 
     def delete(self):
         cr = self.context.get_instance()

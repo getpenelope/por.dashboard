@@ -1,9 +1,12 @@
 import colander
 import deform
 from deform import ValidationFailure
+from deform_bootstrap.widget import ChosenSingleWidget
 from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
+from por.dashboard.fanstatic_resources import fastticketing as fastticketing_fanstatic
+from por.models import DBSession, User
 
 class Tickets(colander.SequenceSchema):
     class Ticket(colander.Schema):
@@ -18,18 +21,23 @@ class Tickets(colander.SequenceSchema):
               owner: user's email
           """
           summary = colander.SchemaNode(typ=colander.String(),
-                             widget=deform.widget.TextInputWidget(placeholder=u'Summary'),
-                             missing=colander.required,
-                             title=u'')
+                            widget=deform.widget.TextInputWidget(placeholder=u"Enter the ticket's title"),
+                            missing=colander.required,
+                            title=u'Summary')
           description = colander.SchemaNode(
-                             colander.String(),
-                             widget=deform.widget.TextAreaWidget(
-                                  placeholder=u'Describe the ticket (wiki syntax)',
+                            colander.String(),
+                            widget=deform.widget.TextAreaWidget(
                                   cols=60,
                                   rows=5),
-                             title=u'')
+                            missing=None,
+                            title=u'Description',
+                            description=u'use wiki syntax')
+          owner = colander.SchemaNode(typ=colander.String(),
+                            widget=ChosenSingleWidget(placeholder= u'Select the pal to assign to'),
+                            missing=colander.required,
+                            title=u'Owner')
 
-    tickets = Ticket(title='')
+    ticket = Ticket(title='')
 
 
 class FastTicketingSchema(colander.Schema):
@@ -49,6 +57,7 @@ class FastTicketing(object):
                 'por.dashboard.forms:templates/master.pt').implementation()
 
         schema = FastTicketingSchema().clone()
+        fastticketing_fanstatic.need()
         form = WizardForm(schema,
                           formid='fastticketing',
                           method='POST',
@@ -56,16 +65,26 @@ class FastTicketing(object):
                                  SubmitButton(title=u'Submit'),
                                  ResetButton(title=u'Reset'),
                           ])
+        form.bootstrap_form_style = ''
         form['tickets'].widget = deform.widget.SequenceWidget(min_len=1)
+
+        users = set()
+        project = self.context.get_instance().project
+        if hasattr(project, 'groups'):
+          for g in project.groups:
+            for u in g.users:
+              users.add(u)
+        form['tickets']['ticket']['owner'].widget.values = [('', '')] + \
+                                      [(str(u.id), u.fullname) for u in list(users)]
         
         controls = self.request.POST.items()
         if controls != []:
-            try:
-                appstruct = form.validate(controls)
-                self.handle_save(appstruct)
-            except ValidationFailure as e:
-                result['form'] = e.render()
-                return result
+          try:
+              appstruct = form.validate(controls)
+              self.handle_save(appstruct)
+          except ValidationFailure as e:
+              result['form'] = e.render()
+              return result
 
 
         result['form'] = form.render()
@@ -73,7 +92,22 @@ class FastTicketing(object):
     
     def handle_save(self, appstruct):
       customerrequest = self.context.get_instance()
-
-      import pdb; pdb.set_trace()
+      user = self.request.authenticated_user
+      
+      tracs = list(self.request.model_instance.project.tracs)
+      if tracs:
+          trac = tracs[0]
+          for t in appstruct['tickets']:
+              owner = DBSession.query(User).filter(User.id == t['owner']).one()
+              ticket = {'summary': t['summary'],
+                        'description': t['description'],
+                        'customerrequest': customerrequest,
+                        'reporter': user.email,
+                        'type': 'task',
+                        'priority': 'major',
+                        'milestone': 'Backlog',
+                        'owner': owner.email}
+              trac.addTicket(ticket)
+      
       raise exc.HTTPFound(location=self.request.fa_url('CustomerRequest',
                                                          customerrequest.id))

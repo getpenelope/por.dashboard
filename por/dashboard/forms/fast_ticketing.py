@@ -7,6 +7,7 @@ from pyramid import httpexceptions as exc
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import fastticketing as fastticketing_fanstatic
 from por.models import DBSession, User
+from por.models.tickets import ticket_store
 
 class Tickets(colander.SequenceSchema):
     class Ticket(colander.Schema):
@@ -70,10 +71,9 @@ class FastTicketing(object):
 
         users = set()
         project = self.context.get_instance().project
-        if hasattr(project, 'groups'):
-          for g in project.groups:
-            for u in g.users:
-              users.add(u)
+        for g in getattr(project, 'groups', []):
+          for u in g.users:
+            users.add(u)
         form['tickets']['ticket']['owner'].widget.values = [('', '')] + \
                                       [(str(u.id), u.fullname) for u in list(users)]
         
@@ -94,20 +94,10 @@ class FastTicketing(object):
       customerrequest = self.context.get_instance()
       user = self.request.authenticated_user
       
-      tracs = list(self.request.model_instance.project.tracs)
-      if tracs:
-          trac = tracs[0]
-          for t in appstruct['tickets']:
-              owner = DBSession.query(User).filter(User.id == t['owner']).one()
-              ticket = {'summary': t['summary'],
-                        'description': t['description'],
-                        'customerrequest': customerrequest,
-                        'reporter': user.email,
-                        'type': 'task',
-                        'priority': 'major',
-                        'milestone': 'Backlog',
-                        'owner': owner.email}
-              trac.addTicket(ticket)
+      ticket_store.add_tickets(project = self.request.model_instance.project, 
+                               customerrequest = customerrequest,
+                               tickets = appstruct['tickets'],
+                               reporter = user)
       
       raise exc.HTTPFound(location=self.request.fa_url('CustomerRequest',
                                                          customerrequest.id))

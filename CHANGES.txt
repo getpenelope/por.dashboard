@@ -8,6 +8,7 @@
 ------------------
 
 - move karma to por.karma package [amleczko]
+- added fastticketing form to add multiple tickets at the same time
 
 1.6.0 (2013-02-18)
 ------------------

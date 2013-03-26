@@ -371,6 +371,7 @@ class Wizard(object):
                         'reporter': manager.email,
                         'type': 'task',
                         'priority': 'major',
+                        'sensitive': '1',
                         'milestone': 'Backlog',
                         'owner': manager.email}]
 

@@ -16,7 +16,8 @@ from fa.jquery.fanstatic_resources import fa_pyramid_js
 from plone.i18n.normalizer import idnormalizer
 
 from por.models import DBSession
-from por.models.dashboard import TRAC, SVN, Application, Customer, CustomerRequest, Group, Project, User
+from por.models.dashboard import TRAC, SVN, Application, Customer, \
+        CustomerRequest, Group, Project, User
 from por.models.tp import TimeEntry
 from por.dashboard.lib.fa_fields import BigTextAreaFieldRenderer
 from por.dashboard.forms.renderers import grooming_label_renderer, UrlRenderer
@@ -24,8 +25,10 @@ from por.models.dublincore import DublinCore
 from por.models.workflow import Workflow
 from por.models.interfaces import IRoleable, ITimeEntry
 from por.dashboard.forms.renderers import TicketRenderer
+from por.dashboard import PROJECT_ID_BLACKLIST
 
 _ = TranslationStringFactory('por')
+
 
 @events.subscriber([Interface, events.IBeforeEditRenderEvent])
 def before_generic_edit_render(context, event):
@@ -137,11 +140,21 @@ def before_project_validated(context, event):
     def my_validator(fs):
         if not fs.id.value:
             project_id = idnormalizer.normalize(fs.name.value)
-            project = DBSession().query(Project).get(project_id)
-            if project and project != fs.model:
-                msg = _('${fs_name_value} already exists! Please choose another project name or provide unique ID!',
-                         mapping={'fs_name_value': fs.name.value})
-                raise ValidationError(msg)
+        else:
+            project_id = fs.id.value
+
+        if project_id.lower() in PROJECT_ID_BLACKLIST:
+            msg = _('${fs_name_value} is a restricted name! Please choose '
+                    'another project name or provide unique ID!',
+                    mapping={'fs_name_value': project_id})
+            raise ValidationError(msg)
+
+        project = DBSession().query(Project).get(project_id)
+        if project and project != fs.model:
+            msg = _('${fs_name_value} already exists! Please choose another '
+                    'project name or provide unique ID!',
+                    mapping={'fs_name_value': project_id})
+            raise ValidationError(msg)
     event.fs.validator = my_validator
 
 

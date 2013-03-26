@@ -1,7 +1,7 @@
 1.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- add project_id validator to wizard form [amleczko]
 
 
 1.6.1 (2013-03-26)

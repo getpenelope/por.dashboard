@@ -7,6 +7,8 @@ from pyramid.authentication import RepozeWho1AuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid_skins.renderer import renderer_factory
 
+PROJECT_ID_BLACKLIST = ('portale', 'project', 'support', 'assistenza')
+
 try:
     import pyinotify; pyinotify
     DISCOVERY = True

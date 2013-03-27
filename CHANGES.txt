@@ -3,6 +3,7 @@
 
 - added fastticketing form to add multiple tickets at the same time [massimoazzolini]
 - PM tickets created by wizard are automatically sensitive [amleczko]
+- update the datatables pagination [amleczko]
 
 
 1.6.1 (2013-03-26)

@@ -13,7 +13,7 @@
       <script tal:define="index columns.index">
         $(document).ready(function() {
           var oTable = $('#groups-datatable-container > table').dataTable({
-            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't>",
+            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't><p>",
             'sPaginationType': 'bootstrap',
             'oLanguage': {
               'sLengthMenu': '_MENU_ rows per page',
@@ -27,7 +27,7 @@
               },
             },
             'bPaginate': true,
-            'iDisplayLength': 10,
+            'iDisplayLength': 20,
             'aaSorting': [[${index('project')}, 'asc'], [${index('roles')}, 'asc']],
 
             'aoColumnDefs': [

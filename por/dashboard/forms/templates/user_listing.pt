@@ -20,7 +20,7 @@
       <script tal:define="index columns.index">
         $(document).ready(function() {
           var oTable = $('#users-datatable-container > table').dataTable({
-            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't>",
+            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't><p>",
             'sPaginationType': 'bootstrap',
             'oLanguage': {
               'sLengthMenu': '_MENU_ rows per page',
@@ -34,7 +34,7 @@
               },
             },
             'bPaginate': true,
-            'iDisplayLength': 10,
+            'iDisplayLength': 20,
             'aaSorting': [[${index('fullname')}, 'asc']],
 
             'aoColumnDefs': [
@@ -49,7 +49,8 @@
                 },
                 {
                   'aTargets': [${index('project_manager')}],
-                  'bSortable': false
+                  'bSortable': false,
+                  'sWidth': '25%'
                 },
                 {
                   'aTargets': [${index('active')}],
@@ -57,7 +58,7 @@
                 }
             ],
 
-            'bAutoWidth': true
+            'bAutoWidth': false
             //'fnDrawCallback': function(oSettings) {
             //  this.css('display', '');
             //}

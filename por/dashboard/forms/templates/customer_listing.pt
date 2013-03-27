@@ -1,6 +1,6 @@
 <html metal:use-macro="main.macros['master']"
-	xmlns:i18n="http://xml.zope.org/namespaces/i18n"
-  	i18n:domain='por'>
+  xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain='por'>
   <body>
     <metal:main fill-slot="page-header"></metal:main>
     <metal:main fill-slot="main">
@@ -13,7 +13,7 @@
         </label>
         <label class="checkbox inline">
           <input type="checkbox" id="cb_filter_favorite" />
-		  <tal:translate i18n:translate="label_favorite_only">Favorite Only</tal:translate>
+      <tal:translate i18n:translate="label_favorite_only">Favorite Only</tal:translate>
         </label>
       </div>
 
@@ -26,13 +26,10 @@
       <script tal:define="index columns.index">
         $(document).ready(function() {
           var oTable = $('#customers-datatable-container > table').dataTable({
-            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't>",
+            'sDom': "<'row-fluid'<'span4'i><'span4'f><p>><'row-fluid't><p>",
             'sPaginationType': 'bootstrap',
-            'oLanguage': {
-				'sUrl': 'dataTables.german.txt',
-            },
             'bPaginate': true,
-            'iDisplayLength': 10,
+            'iDisplayLength': 20,
             'aaSorting': [[${index('name')}, 'asc']],
 
             'aoColumnDefs': [

@@ -34,6 +34,11 @@ class ProjectBGB(object):
         td = self.done_cache.get(cr.id, datetime.timedelta(0))
         return total_seconds(td)
 
+    def get_percentage(self, cr):
+        estimate = self.get_estimate(cr)
+        if not estimate:
+            return 0
+        return float(self.get_done(cr)) / estimate * 100
 
 
 class Backlog(object):
@@ -106,6 +111,9 @@ class Backlog(object):
         can_view_done = collections.defaultdict(bool)
         can_view_done_column = False
 
+        can_view_percentage = collections.defaultdict(bool)
+        can_view_percentage_column = False
+
         can_view_estimate = collections.defaultdict(bool)
         can_view_estimate_column = False
         can_edit_cr = collections.defaultdict(bool)
@@ -115,12 +123,14 @@ class Backlog(object):
             if self.request.has_permission('estimations', project):
                 # display values in the project's "estimate" column, and the project's total
                 can_view_estimate[project] = True
-                # display values in the project's "done" column, and the project's total
                 can_view_done[project] = True
+                # display values in the project's "done" column, and the project's total
+                can_view_percentage[project] = True
                 # display a big-total and inserts an "estimate" column in the table
                 can_view_estimate_column = True
                 # display a big-total and inserts a "done" column in the table
                 can_view_done_column = True
+                can_view_percentage_column = True
 
             for cr in project.customer_requests:
                 if self.request.has_permission('edit', cr):
@@ -136,6 +146,8 @@ class Backlog(object):
             'cr_workflow_states': cr_workflow_states,
             'cr_workflow_active': set(['created', 'estimated']),
             'can_view_placement': can_view_placement,
+            'can_view_percentage': can_view_percentage,
+            'can_view_percentage_column': can_view_percentage_column,
             'can_view_done': can_view_done,
             'can_view_done_column': can_view_done_column,
             'can_view_estimate': can_view_estimate,

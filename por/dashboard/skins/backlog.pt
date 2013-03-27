@@ -63,6 +63,7 @@
             <col class="col-workflow-state" />
             <col tal:condition="can_view_estimate_column" class="col-estimated" />
             <col tal:condition="can_view_done_column" class="col-done" />
+            <col tal:condition="can_view_percentage_column" class="col-done" />
           </colgroup>
           <thead>
             <tr class="backlog-table-headers">
@@ -71,6 +72,7 @@
               <th class="backlog-workflow">state</th>
               <th tal:condition="can_view_estimate_column" class="backlog-duration">estimated</th>
               <th tal:condition="can_view_done_column" class="backlog-duration">done</th>
+              <th tal:condition="can_view_percentage_column" class="backlog-duration">percentage</th>
             </tr>
             <tr tal:condition="multiple_bgb">
               <th tal:condition="can_view_placement">&nbsp;</th>
@@ -78,6 +80,7 @@
               <th>&nbsp;</th>
               <th tal:condition="can_view_estimate_column" class="backlog-duration"><span class="bigtotal-estimate"></span></th>
               <th tal:condition="can_view_done_column" class="backlog-duration"><span class="bigtotal-done"></span></th>
+              <th tal:condition="can_view_percentage_column" class="backlog-duration"><span class="bigtotal-percentage"></span></th>
             </tr>
           </thead>
           <tal:bgb repeat="bgb bgbs">
@@ -90,6 +93,7 @@
                 </td>
                 <td tal:condition="can_view_estimate_column" class="backlog-duration"><span class="total-estimate"></span></td>
                 <td tal:condition="can_view_done_column" class="backlog-duration"><span class="total-done"></span></td>
+                <td tal:condition="can_view_percentage_column" class="backlog-duration"><span class="total-percentage"></span></td>
               </tr>
             </tbody>
             <tbody class="bgb-project table ${'hide' if multiple_bgb else nothing}">
@@ -99,6 +103,7 @@
                     data-cr-editable="${1 if can_edit_cr[cr] else nothing}"
                     data-workflow-state="${cr.workflow_state}"
                     data-duration-estimate="${bgb.get_estimate(cr) if can_view_estimate[bgb.project] else nothing}"
+                    data-duration-percentage="${bgb.get_percentage(cr) if can_view_percentage[bgb.project] else nothing}"
                     data-duration-done="${bgb.get_done(cr) if can_view_done[bgb.project] else nothing}">
                   <td tal:condition="can_view_placement">&nbsp;</td>
                   <td>
@@ -109,6 +114,7 @@
                   <td class="backlog-workflow">${cr.workflow_state}</td>
                   <td tal:condition="can_view_estimate_column" class="backlog-duration">&nbsp;</td>
                   <td tal:condition="can_view_done_column" class="backlog-duration">&nbsp;</td>
+                  <td tal:condition="can_view_percentage_column" class="backlog-duration">&nbsp;</td>
                 </tr>
               </tal:cr>
               <tr>
@@ -117,6 +123,7 @@
                 <td>&nbsp;</td>
                 <td tal:condition="can_view_estimate_column">&nbsp;</td>
                 <td tal:condition="can_view_done_column">&nbsp;</td>
+                <td tal:condition="can_view_percentage_column">&nbsp;</td>
               </tr>
             </tbody>
           </tal:bgb>
@@ -125,6 +132,7 @@
             <td colspan="2">No customer request matches the selection.</td>
             <td tal:condition="can_view_estimate_column">&nbsp;</td>
             <td tal:condition="can_view_done_column">&nbsp;</td>
+            <td tal:condition="can_view_percentage_column">&nbsp;</td>
           </tfoot>
         </table>
 

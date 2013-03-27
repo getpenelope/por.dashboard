@@ -1,6 +1,7 @@
 1.6.2 (unreleased)
 ------------------
 
+- add percentage column to backlog [amleczko]
 - added fastticketing form to add multiple tickets at the same time [massimoazzolini]
 - PM tickets created by wizard are automatically sensitive [amleczko]
 - update the datatables pagination [amleczko]

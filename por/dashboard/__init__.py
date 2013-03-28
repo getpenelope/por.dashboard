@@ -62,6 +62,7 @@ def main(global_config, **settings):
     config.scan('por.dashboard.backlog')
 
     config.add_route('administrator', '/manage', factory='por.dashboard.manage.ManageContext')
+    config.add_route('manage_svn_authz', '/manage/svn_authz', factory='por.dashboard.manage.ManageContext')
     config.scan('por.dashboard.manage')
 
     config.add_route('reports', '/reports/*traverse', factory='por.dashboard.reports.ReportContext')

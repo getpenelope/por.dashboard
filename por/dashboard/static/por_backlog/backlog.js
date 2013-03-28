@@ -31,6 +31,29 @@ $(document).ready(function(){
         }
     };
 
+    var format_percentage = function(value) {
+        return (Math.round(value*100)/100).toFixed(2);
+    };
+
+    var fill_percentage = function ($percentage, value) {
+        // align visible digits at the decimal dot.
+        // this is an horrible, horrible hack.
+        var parts = format_percentage(value).split('.'),
+            part_int = parts[0],
+            part_dec = parts[1];
+
+        if (isNaN(value)) {
+            $percentage.empty();
+            return;
+        }
+
+        if (part_dec === '00') {
+            $percentage.empty().append($('<span>'+part_int+'</span>')).append($('<span class="invisible">.00</span>')).append($('<span>%</span>'));
+        } else {
+            $percentage.text(part_int+'.'+part_dec+'%');
+        }
+    };
+
     var update_placement;
 
     var placement_onclick = function(ev) {
@@ -82,6 +105,12 @@ $(document).ready(function(){
                                 $duration = $(this).find('td:nth-child(5)');
                             fill_duration($duration, secs);
     });
+    // fill duration 'done' column
+    $('[data-duration-percentage]').each(function() {
+                            var secs = parseInt($(this).data('duration-percentage'), 10),
+                                $duration = $(this).find('td:nth-child(6)');
+                            fill_percentage($duration, secs);
+    });
 
 
     // checks if a given row is selected from the main filter
@@ -100,6 +129,8 @@ $(document).ready(function(){
         var totals = {},
             total_estimate = 0,
             total_done = 0,
+            percentages = new Array(),
+            total_percentage = 0,
             matching_crs = 0,
             $bgb = $bgb_header.next('.bgb-project');
 
@@ -107,12 +138,19 @@ $(document).ready(function(){
             if (check_filter($(this))) {
                 total_estimate += parseInt($(this).data('duration-estimate'), 10);
                 total_done += parseInt($(this).data('duration-done'), 10);
+                percentages.push(parseInt($(this).data('duration-percentage'), 10));
                 matching_crs += 1;
             }
         });
+        if (percentages.length){
+            total_percentage = (percentages.reduce(function(a, b) { return a + b }) / percentages.length);
+        } else {
+            total_percentage = -1;
+        }
 
         fill_duration($bgb_header.find('.total-estimate'), total_estimate);
         fill_duration($bgb_header.find('.total-done'), total_done);
+        fill_percentage($bgb_header.find('.total-percentage'), total_percentage);
 
         // if there are no matching customer requests, hide the whole project.
         if (!matching_crs) {
@@ -127,7 +165,8 @@ $(document).ready(function(){
 
         return {
             total_estimate: total_estimate,
-            total_done: total_done
+            total_done: total_done,
+            total_percentage: total_percentage
         };
     };
 
@@ -135,14 +174,26 @@ $(document).ready(function(){
     // update totals for all the tbodies
     var update_totals = function() {
         var bigtotal_estimate = 0,
-            bigtotal_done = 0;
+            bigtotal_done = 0,
+            percentages = new Array(),
+            bigtotal_percentage = 0;
         $('.bgb-project-header').each(function() {
             var totals = update_project_totals($(this));
             bigtotal_estimate += (totals.total_estimate || 0);
             bigtotal_done += (totals.total_done || 0);
+            if (totals.total_percentage != -1){
+                percentages.push(totals.total_percentage || 0);
+            }
         });
+        if (percentages.length){
+            bigtotal_percentage = (percentages.reduce(function(a, b) { return a + b }) / (percentages.length));
+        } else {
+            bigtotal_percentage = 0;
+        }
+
         fill_duration($('.bigtotal-estimate'), bigtotal_estimate);
         fill_duration($('.bigtotal-done'), bigtotal_done);
+        fill_percentage($('.bigtotal-percentage'), bigtotal_percentage);
     };
 
 
@@ -189,11 +240,13 @@ $(document).ready(function(){
             $('.backlog-no-rows').show();
             $('.bigtotal-estimate').hide();
             $('.bigtotal-done').hide();
+            $('.bigtotal-percentage').hide();
         } else {
             $('.backlog-table-headers').show();
             $('.backlog-no-rows').hide();
             $('.bigtotal-estimate').show();
             $('.bigtotal-done').show();
+            $('.bigtotal-percentage').show();
         }
     };
 

@@ -6,6 +6,7 @@
 - PM tickets created by wizard are automatically sensitive [amleczko]
 - update the datatables pagination [amleczko]
 - add SVN authz manage screen [amleczko]
+- add project_id validator to wizard form [amleczko]
 
 
 1.6.1 (2013-03-26)

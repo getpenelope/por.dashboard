@@ -17,6 +17,7 @@ from por.models.dashboard import ApplicationACL
 from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
+from por.dashboard import PROJECT_ID_BLACKLIST
 
 _ = TranslationStringFactory('por')
 
@@ -82,12 +83,22 @@ progetto nel suo assieme. """),
 
 
 class Definition(colander.Schema):
+
+    def check_project_id(value):
+        project = DBSession().query(Project).get(value)
+        if value.lower() in PROJECT_ID_BLACKLIST or project:
+            return _('${project_id} is a restricted name or already exists! '
+                     'Please choose another project name or provide unique ID!',
+                     mapping={'project_id': value})
+        else:
+            return True
+
     project_name = SchemaNode(typ=colander.String(),
                               widget=TextInputWidget(css_class='input-xlarge',
-                                                     validator=colander.
-                                                               Length(max=20),
                                                      placeholder=u'Project name'),
                               missing=colander.required,
+                              validator=colander.All(colander.Length(max=20),
+                                                     colander.Function(check_project_id)),
                               title=u'')
     trac_name = SchemaNode(typ=colander.String(),
                            widget=TextInputWidget(css_class='input-xxlarge',

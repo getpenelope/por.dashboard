@@ -1,4 +1,4 @@
-1.6.2 (unreleased)
+1.6.2 (2013-04-02)
 ------------------
 
 - add percentage column to backlog [amleczko]

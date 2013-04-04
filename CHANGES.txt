@@ -1,7 +1,7 @@
 1.6.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- performance improvements [amleczko]
 
 
 1.6.2 (2013-04-02)

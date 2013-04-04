@@ -1,4 +1,4 @@
-1.6.3 (unreleased)
+1.6.3 (2013-04-04)
 ------------------
 
 - performance improvements [amleczko]

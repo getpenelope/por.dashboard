@@ -3,6 +3,7 @@ import json
 import colander
 import deform
 
+from plone.i18n.normalizer import idnormalizer
 from colander import SchemaNode
 from deform import ValidationFailure
 from deform.widget import CheckboxWidget, TextInputWidget, SequenceWidget
@@ -22,8 +23,7 @@ from por.dashboard import PROJECT_ID_BLACKLIST
 
 _ = TranslationStringFactory('por')
 
-WELCOME_SUBJECT = _(u"Benvenuto su Penelope, il sistema di Issue tracking di "\
-                    "RedTurtle")
+WELCOME_SUBJECT = _(u"Welcome to Penelope, Issue tracking system.")
 
 WELCOME_BODY = _(u"""
 Sei stato abilitato all'utilizzo di Penelope, la nostra piattaforma online di
@@ -86,7 +86,8 @@ progetto nel suo assieme. """),
 class Definition(colander.Schema):
 
     def check_project_id(value):
-        project = DBSession().query(Project).get(value)
+        project_id = idnormalizer.normalize(value)
+        project = DBSession().query(Project).get(project_id)
         if value.lower() in PROJECT_ID_BLACKLIST or project:
             return _('${project_id} is a restricted name or already exists! '
                      'Please choose another project name or provide unique ID!',
@@ -309,6 +310,7 @@ class Wizard(object):
         """ The main handle method for the wizard. """
         customer = self.context.get_instance()
         #create new users
+        recipients = []
         groups = {}
         mailer = get_mailer(self.request)
         for newuser in appstruct['new_users']:
@@ -317,23 +319,24 @@ class Wizard(object):
                 groups[newuser['role']] = []
             groups[newuser['role']].append(user)
             if newuser['send_email_howto']:
-                headers = {"header": u'Password reset',
-                "message": ('You were enabled as a user of Penelope, '
-                            'our online projects and trouble ticket '
-                            'management platform. With penelope you will be '
-                            'able to open new tickets and follow the evolution '
-                            'of the issues you opened. We recommend to double '
-                            'check that the tickets you open have the '
-                            '"Ticked opened by customer" field set at "SI" (Yes).'),
-                "link": '%s/password_reset_form' % (self.request.application_url),
-                "action": 'Activate your account'}
-
-                message = Message(subject=WELCOME_SUBJECT,
-                                  recipients=[newuser['email']],
-                                  body='Welcome to Penelope',
-                                  extra_headers={'X-MC-Template': 'general',
-                                                 'X-MC-MergeVars': json.dumps(headers)})
-                mailer.send(message)
+                recipients.append(newuser['email'])
+        if recipients:
+            headers = {"header": u'Welcome to Penelope',
+            "message": ('You were enabled as a user of Penelope, '
+                        'our online projects and trouble ticket '
+                        'management platform. With penelope you will be '
+                        'able to open new tickets and follow the evolution '
+                        'of the issues you opened. We recommend to double '
+                        'check that the tickets you open have the '
+                        '"Ticked opened by customer" field set at "SI" (Yes).'),
+            "link": '%s/password_reset_form' % (self.request.application_url),
+            "action": 'Activate your account NOW!'}
+            message = Message(subject=WELCOME_SUBJECT,
+                                recipients=recipients,
+                                body='Welcome to Penelope',
+                                extra_headers={'X-MC-Template': 'general',
+                                               'X-MC-MergeVars': json.dumps(headers)})
+            mailer.send(message)
 
         #create project and set manager
         manager = self.request.authenticated_user
@@ -407,6 +410,8 @@ class Wizard(object):
 
         #create trac
         trac = Trac(name="Trac for %s" % appstruct['project']['project_name'])
+        trac.settings = self.request.registry.settings # an ugly patch to pass 
+                                                       # the missing settings 
         trac.milestones = appstruct['milestones']
         trac.tickets = tickets
         if appstruct['project']['trac_name']:

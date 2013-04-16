@@ -57,7 +57,7 @@ def manage_svn_authz(request):
 
     if request.method == 'POST':
         from por.trac.authz import generate_authz
-        generate_authz()
+        generate_authz(request.registry.settings)
 
     with open(authz_file, 'r') as configfile:
         authz = configfile.read()

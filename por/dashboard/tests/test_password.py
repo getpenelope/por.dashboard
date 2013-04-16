@@ -16,7 +16,6 @@ class Request(testing.DummyRequest):
         testing.DummyRequest.__init__(self, **kwargs)
         mailer = DummyMailer()
         self.registry.registerUtility(mailer, IMailer)
-        self.registry.settings = {'mail.from_address': 'dummy@dummy.com'}
 
     def add_message(self, *args, **kwargs):
         self.msgs.add(*args, **kwargs)

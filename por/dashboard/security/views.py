@@ -13,6 +13,7 @@ from pyramid_mailer.message import Message
 from random import choice
 from uuid import uuid4
 import string
+import json
 
 _ = TranslationStringFactory('por')
 
@@ -102,12 +103,17 @@ def password_reset(request):
         token = None
 
     if token:
-        settings = request.registry.settings
+#        settings = request.registry.settings
         mailer = get_mailer(request)
+        headers = {"header": u'Password reset',
+                   "message": u'Please click on the link bellow to reset your penelope account\'s password.',
+                   "link": '%s/change_password?token=%s' % (request.application_url, token),
+                   "action": 'Reset password'}
         message = Message(subject=u"Password reset request",
-                          sender=settings['mail.from_address'],
                           recipients=[email],
-                          body=u"Please click on %s/change_password?token=%s" % (request.application_url, token))
+                          body=u'Password reset',
+                          extra_headers={'X-MC-Template': 'general',
+                                         'X-MC-MergeVars': json.dumps(headers)})
         mailer.send(message)
     return {'request': request, 'token': token}
 

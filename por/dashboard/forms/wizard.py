@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import json
 import colander
 import deform
 
@@ -307,10 +308,8 @@ class Wizard(object):
     def handle_save(self, appstruct):
         """ The main handle method for the wizard. """
         customer = self.context.get_instance()
-
         #create new users
         groups = {}
-        settings = self.request.registry.settings
         mailer = get_mailer(self.request)
         for newuser in appstruct['new_users']:
             user = User(fullname=newuser['fullname'], email=newuser['email'])
@@ -318,12 +317,22 @@ class Wizard(object):
                 groups[newuser['role']] = []
             groups[newuser['role']].append(user)
             if newuser['send_email_howto']:
-                body = WELCOME_BODY % (self.request.application_url,
-                                       self.request.application_url)
+                headers = {"header": u'Password reset',
+                "message": ('You were enabled as a user of Penelope, '
+                            'our online projects and trouble ticket '
+                            'management platform. With penelope you will be '
+                            'able to open new tickets and follow the evolution '
+                            'of the issues you opened. We recommend to double '
+                            'check that the tickets you open have the '
+                            '"Ticked opened by customer" field set at "SI" (Yes).'),
+                "link": '%s/password_reset_form' % (self.request.application_url),
+                "action": 'Activate your account'}
+
                 message = Message(subject=WELCOME_SUBJECT,
-                                  sender=settings['mail.from_address'],
                                   recipients=[newuser['email']],
-                                  body=body)
+                                  body='Welcome to Penelope',
+                                  extra_headers={'X-MC-Template': 'general',
+                                                 'X-MC-MergeVars': json.dumps(headers)})
                 mailer.send(message)
 
         #create project and set manager

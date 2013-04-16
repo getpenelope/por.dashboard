@@ -7,7 +7,7 @@
 1.6.4 (2013-04-16)
 ------------------
 
-- Nothing changed yet.
+- mandrill integration [amleczko]
 
 
 1.6.3 (2013-04-04)

@@ -29,7 +29,7 @@
             <tr tal:repeat="result results">
               <td>${result.realm}</td>
               <td>${result.project}</td>
-              <td><a href="${request.application_url}/${result.href()}">${result.title}</a></td>
+              <td><a href="${request.application_url}/trac/${result.href()}">${result.title}</a></td>
               <td>${result.oneline}</td>
               <td>${', '.join(result.author)}</td>
               <td>${result.popularity}</td>

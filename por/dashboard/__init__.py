@@ -67,6 +67,9 @@ def main(global_config, **settings):
     config.add_route('manage_svn_authz', '/manage/svn_authz', factory='por.dashboard.manage.ManageContext')
     config.scan('por.dashboard.manage')
 
+    config.add_route('search', '/search')
+    config.scan('por.dashboard.search')
+
     config.add_route('reports', '/reports/*traverse', factory='por.dashboard.reports.ReportContext')
     config.scan('por.dashboard.reports')
     config.add_renderer(name='xls_report', factory='por.dashboard.renderers.XLSReportRenderer')

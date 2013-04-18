@@ -1,0 +1,44 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+  xmlns:tal="http://xml.zope.org/namespaces/tal"
+  i18n:domain="por"
+      metal:use-macro="skin: /main_template">
+<body>
+  <div metal:fill-slot="body">
+    <div class="well">
+      <form class="navbar-form pull-left" action="${request.application_url}/search">
+        <div class="input-prepend input-append">
+              <span class="add-on">searchterm: </span>
+              <input class="input-xxlarge" name="searchable" id="searchbox"
+                     type="text" value="${request.params.get('searchable')}">
+              <span class="add-on"><i class="icon-search"></i></span>
+          </div>
+          </form>
+        </div>
+    <table class="table table-bordered time-entries table-condensed">
+          <thead>
+            <tr>
+              <th>type</th>
+              <th>project</th>
+              <th>title</th>
+              <th>description</th>
+              <th>author</th>
+              <th>popularity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="result results">
+              <td>${result.realm}</td>
+              <td>${result.project}</td>
+              <td><a href="${request.application_url}/${result.href()}">${result.title}</a></td>
+              <td>${result.oneline}</td>
+              <td>${', '.join(result.author)}</td>
+              <td>${result.popularity}</td>
+            </tr>
+          </tbody>
+        </table>
+        <script>
+          $(document).ready(function () {$('#searchbox').focus(); });
+        </script>
+</div>
+</body>
+</html>

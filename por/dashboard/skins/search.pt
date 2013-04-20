@@ -14,29 +14,38 @@
           </div>
           </form>
         </div>
-    <table class="table table-bordered time-entries table-condensed">
-          <thead>
-            <tr>
-              <th>type</th>
-              <th>project</th>
-              <th>title</th>
-              <th>description</th>
-              <th>author</th>
-              <th>popularity</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr tal:repeat="result results">
-              <td>${result.realm}</td>
-              <td>${result.project}</td>
-              <td><a href="${request.application_url}/trac/${result.href()}">${result.title}</a></td>
-              <td>${result.oneline}</td>
-              <td>${', '.join(result.author)}</td>
-              <td>${result.popularity}</td>
-            </tr>
-          </tbody>
-        </table>
-        <script>
+    <p tal:condition="not: results">No results found</p>
+    <tal:results condition="results">
+      <p>We have found ${results.result.numFound} elemets matching your criteria.</p>
+      <table class="table table-bordered time-entries table-condensed">
+            <thead>
+              <tr>
+                <th>type</th>
+                <th>project</th>
+                <th>title</th>
+                <th>description</th>
+                <th>authors</th>
+                <th>score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr tal:repeat="doc docs">
+                <td>${doc.realm}</td>
+                <td>${doc.project}</td>
+                <td><a href="${request.application_url}/${doc.href()}"
+                    tal:content="structure doc.title"></a></td>
+                <td tal:content="structure doc.oneline"></td>
+                <td>${doc.author}, ${doc.involved}</td>
+                <td>${doc.score}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul class="pager">
+            <li tal:condition="previous"><a href="${previous}">Previous</a></li>
+            <li tal:condition="next"><a href="${next}">Next</a></li>
+          </ul>
+      </tal:results>
+          <script>
           $(document).ready(function () {$('#searchbox').focus(); });
         </script>
 </div>

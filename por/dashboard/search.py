@@ -1,32 +1,88 @@
 # -*- coding: utf-8 -*-
 import logging
 import bleach
+import colander
+import deform
 from sunburnt import SolrInterface
 from pyramid.view import view_config
 from pyramid.url import current_route_url
 from por.models.dashboard import Trac
 from por.models import DBSession
+from por.dashboard.lib.widgets import SearchButton, PorInlineForm
+from deform_bootstrap.widget import ChosenMultipleWidget
 
 log = logging.getLogger('penelope')
 
 
 def searchable_tracs(request):
-    query = """SELECT DISTINCT '%(trac)s' AS trac_name FROM "trac_%(trac)s".permission
+    all_tracs = DBSession().query(Trac)
+    # a list of tracs user can view:
+    if not request.has_permission('manage', None):
+        user_projects = [g.project for g in request.authenticated_user.groups]
+        viewable_tracs = []
+        for project in user_projects:
+            for trac in project.tracs:
+                viewable_tracs.append(trac)
+    else:
+        viewable_tracs = all_tracs
+
+    query = """SELECT DISTINCT '%(trac)s' AS trac_name, '%(project)s' AS project_name FROM "trac_%(trac)s".permission
  WHERE username IN ('internal_developer', '%(user)s')"""
 
     queries = []
-    for trac in DBSession().query(Trac.trac_name):
+    for trac in viewable_tracs:
         queries.append(query % {'trac': trac.trac_name,
+                                'project': trac.project.name,
                                 'user': request.authenticated_user.email})
     sql = '\nUNION '.join(queries)
     sql += ';'
-    return [trac.trac_name for trac in DBSession().execute(sql).fetchall()]
+    return DBSession().execute(sql).fetchall()
 
 
-@view_config(route_name='search', permission='manage', renderer='skin')
+class SearchSchema(colander.MappingSchema):
+    tracs = colander.SchemaNode(deform.Set(allow_empty=True),
+                                widget=ChosenMultipleWidget(css_class='trac-select',
+                                                           placeholder=u'Select tracs'),
+                                missing=colander.null,
+                                title=u'')
+
+    searchable = colander.SchemaNode(typ=colander.String(),
+                            title=u'',
+                            widget = deform.widget.TextInputWidget(
+                                            css_class=u'input-xxlarge',
+                                            placeholder=u'Searchable text'),)
+
+
+@view_config(route_name='search', permission='search', renderer='skin')
 def search(request):
+
+    schema = SearchSchema().bind(request=request)
+    form = PorInlineForm(
+                schema,
+                formid='search',
+                method='GET',
+                buttons=[SearchButton(title=u'Search'),]
+            )
+
     tracs = searchable_tracs(request)
-    fs = FullTextSearch(request=request, project_ids=tracs)
+    form['tracs'].widget.values = [('', '')] + [(t.trac_name, t.project_name) for t in tracs]
+
+    controls = request.GET.items()
+    if not controls:
+        return {'form': form.render(),
+                'results':[]}
+
+    try:
+        appstruct = form.validate(controls)
+    except deform.ValidationFailure as e:
+        return {'form': e.render(),
+                'results':[]}
+
+    params = appstruct.copy()
+    if not params['tracs']:
+        params['tracs'] = [t.trac_name for t in tracs]
+
+    fs = FullTextSearch(request=request, **params)
     results = fs.get_search_results()
     next_url = None
     previous_url = None
@@ -34,7 +90,7 @@ def search(request):
 
     if results:
         docs = [FullTextSearchObject(**doc) for doc in results]
-        base_query = {'searchable': request.params.get('searchable')}
+        base_query = dict(request.params)
         records_len = results.result.numFound
         if not fs.page_start + fs.page_size >= records_len: # end of set
             next_query = base_query.copy()
@@ -51,20 +107,18 @@ def search(request):
 
     return {'docs': docs,
             'next': next_url,
+            'form': form.render(appstruct=appstruct),
             'previous': previous_url,
             'results': results}
 
 
 class FullTextSearch(object):
 
-    def __init__(self, request, project_ids=[]):
+    def __init__(self, request, tracs=None, searchable=None):
         self.request = request
-        self.project_ids = project_ids
+        self.tracs = list(tracs)
+        self.searchable = searchable
         self.solr_endpoint = request.registry.settings.get('por.solr')
-
-    @property
-    def terms(self):
-        return self.request.params.get('searchable')
 
     @property
     def page_start(self):
@@ -72,7 +126,7 @@ class FullTextSearch(object):
 
     @property
     def page_size(self):
-        return 20
+        return 30
 
     def get_search_results(self,):
         try:
@@ -95,13 +149,14 @@ class FullTextSearch(object):
                 # NB A TypeError will be raised if this string is combined
                 #    with a LuceneQuery
                 return ""
-        return rec(self.project_ids[:])
+        return rec(self.tracs[:])
 
     def _do_search(self, facet='realm', sort_by=None, field_limit=None):
         si = SolrInterface(self.solr_endpoint)
-        query = si.query(self.terms).field_limit(score=True)
 
-        if self.project_ids:
+        query = si.query(self.searchable).field_limit(score=True)
+
+        if self.tracs:
             filter_q = self._build_filter_query(si)
             query = query.filter(filter_q)
         if facet:

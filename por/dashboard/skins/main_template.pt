@@ -101,7 +101,7 @@
               </ul>
             </li>
           </ul>
-          <form class="navbar-form pull-left" tal:condition="request.has_permission('manage', context)"
+          <form class="navbar-form pull-left" tal:condition="request.has_permission('search', context)"
                 action="${request.application_url}/search">
             <div class="input-append">
               <input class="input-xxlarge" name="searchable" type="text" value="${request.params.get('searchable')}">

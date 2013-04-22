@@ -6,8 +6,8 @@ from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import fastticketing as fastticketing_fanstatic
-from por.models import DBSession, User
 from por.models.tickets import ticket_store
+
 
 class Tickets(colander.SequenceSchema):
     class Ticket(colander.Schema):

@@ -102,6 +102,7 @@ DEFAULT_ACL.allow('role:administrator', ALL_PERMISSIONS)
 
 #/home
 DEFAULT_ACL.allow(Authenticated, 'view_home')
+DEFAULT_ACL.allow('role:redturtle_developer', 'search')
 
 #/view_iterations
 DEFAULT_ACL.allow('role:local_developer', 'view_iterations')
@@ -160,12 +161,10 @@ DEFAULT_ACL.allow('role:secretary', 'view_backlog')
 
 CRUD_ACL = ACL('por_crud_acl')
 CRUD_ACL.allow('role:administrator', ALL_PERMISSIONS)
+CRUD_ACL.allow('role:redturtle_developer', 'search')
 
 #Customer
 CRUD_ACL.allow(Authenticated, 'customer_listing')
-#CRUD_ACL.allow('role:internal_developer', 'customer_listing')
-#CRUD_ACL.allow('role:secretary', 'customer_listing')
-#CRUD_ACL.allow('role:project_manager', 'customer_listing')
 
 ONLY_PROJECT_ROLES = set([u'internal_developer', u'external_developer', u'customer'])
 

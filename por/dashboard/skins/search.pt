@@ -4,19 +4,14 @@
       metal:use-macro="skin: /main_template">
 <body>
   <div metal:fill-slot="body">
-    <div class="well">
-      <form class="navbar-form pull-left" action="${request.application_url}/search">
-        <div class="input-prepend input-append">
-              <span class="add-on">searchterm: </span>
-              <input class="input-xxlarge" name="searchable" id="searchbox"
-                     type="text" value="${request.params.get('searchable')}">
-              <span class="add-on"><i class="icon-search"></i></span>
-          </div>
-          </form>
-        </div>
+    <tal:form replace="structure form"/>
     <p tal:condition="not: results">No results found</p>
     <tal:results condition="results">
       <p>We have found ${results.result.numFound} elemets matching your criteria.</p>
+        <ul class="pager">
+          <li tal:condition="previous"><a href="${previous}">Previous</a></li>
+          <li tal:condition="next"><a href="${next}">Next</a></li>
+        </ul>
       <table class="table table-bordered time-entries table-condensed">
             <thead>
               <tr>

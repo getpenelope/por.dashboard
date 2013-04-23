@@ -104,7 +104,7 @@
           <form class="navbar-form pull-left" tal:condition="request.has_permission('search', context)"
                 action="${request.application_url}/search">
             <div class="input-append">
-              <input class="input-xxlarge" name="searchable" type="text" value="${request.params.get('searchable')}">
+              <input class="input-large" name="searchable" type="text" value="${request.params.get('searchable')}">
               <span class="add-on"><i class="icon-search"></i></span>
             </div>
           </form>

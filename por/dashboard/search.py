@@ -49,7 +49,7 @@ class SearchSchema(colander.MappingSchema):
     searchable = colander.SchemaNode(typ=colander.String(),
                             title=u'',
                             widget = deform.widget.TextInputWidget(
-                                            css_class=u'input-xxlarge',
+                                            css_class=u'input-large',
                                             placeholder=u'Searchable text'),)
 
 

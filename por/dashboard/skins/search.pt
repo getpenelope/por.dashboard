@@ -30,7 +30,7 @@
                 <td><a href="${request.application_url}/${doc.href()}"
                     tal:content="structure doc.title"></a></td>
                 <td tal:content="structure doc.oneline"></td>
-                <td>${doc.author}, ${doc.involved}</td>
+                <td>${doc.author}</td>
                 <td>${doc.score}</td>
               </tr>
             </tbody>

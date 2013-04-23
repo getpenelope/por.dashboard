@@ -220,13 +220,11 @@ class FullTextSearchObject(object):
                  oneline=None, involved=None, popularity=None, comments=None,
                  solr_highlights=None , **kwarg):
         self.project = project
-        self.author = ', '.join(author)
+        self.author = ', '.join(author + involved)
         self.created = created
-        self.involved = involved
         self.popularity = popularity
         self.comments = comments
         self.realm = realm
-        self.involved = ', '.join(involved)
         self.solr_highlights = solr_highlights
         self._title = ''.join(title)
         self._oneline = oneline

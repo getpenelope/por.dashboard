@@ -116,8 +116,8 @@ class FullTextSearch(object):
 
     def __init__(self, request, tracs=None, searchable=None):
         self.request = request
-        self.tracs = list(tracs)
-        self.searchable = searchable
+        self.viewable_tracs = list(tracs)
+        self.searchable = searchable.split(' ') # always a sequence
         self.solr_endpoint = request.registry.settings.get('por.solr')
 
     @property
@@ -136,35 +136,52 @@ class FullTextSearch(object):
                            "to built-in search sources: %s", e)
             return
 
-    def _build_filter_query(self, si):
+    def _build_trac_filter(self, si):
+        all_tracs = set([a.trac_name for a in DBSession().query(Trac.trac_name)])
         Q = si.query().Q
-        def rec(list1):
-            if len(list1) > 2:
-                return Q(project=list1.pop()) | rec(list1)
-            elif len(list1) == 2:
-                return Q(project=list1.pop()) | Q(project=list1.pop())
-            elif len(list1) == 1:
-                return Q(project=list1.pop())
+
+        def query_include(items):
+            if len(items) > 2:
+                return Q(project=items.pop()) | query_include(items)
+            elif len(items) == 2:
+                return Q(project=items.pop()) | Q(project=items.pop())
+            elif len(items) == 1:
+                return Q(project=items.pop())
             else:
-                # NB A TypeError will be raised if this string is combined
-                #    with a LuceneQuery
                 return ""
-        return rec(self.tracs[:])
 
-    def _do_search(self, facet='realm', sort_by=None, field_limit=None):
+        def query_exclude(items):
+            if len(items) > 2:
+                return ~Q(project=items.pop()) & ~query_exclude(items)
+            elif len(items) == 2:
+                return ~Q(project=items.pop()) & ~Q(project=items.pop())
+            elif len(items) == 1:
+                return ~Q(project=items.pop())
+            else:
+                return ""
+
+        # if viewable_tracs are > (all_tracs / 2)
+        # let's exclude
+        if len(self.viewable_tracs) > (len(all_tracs) / 2):
+            return query_exclude(all_tracs.difference(self.viewable_tracs))
+        # in other cases
+        # let's use include
+        else:
+            return query_include(self.viewable_tracs)
+
+    def _do_search(self, sort_by=None):
         si = SolrInterface(self.solr_endpoint)
+        query = si.query().field_limit(score=True)
 
-        query = si.query(self.searchable).field_limit(score=True)
+        for searchterm in self.searchable:
+            query = query.query(searchterm)
 
-        if self.tracs:
-            filter_q = self._build_filter_query(si)
-            query = query.filter(filter_q)
-        if facet:
-            query = query.facet_by(facet)
+        trac_query = self._build_trac_filter(si)
+        if trac_query:
+            query = query.filter(trac_query)
+
         for field in sort_by or []:
             query = query.sort_by(field)
-        if field_limit:
-            query = query.field_limit(field_limit)
 
         return query.paginate(start=self.page_start, rows=self.page_size)\
                             .highlight('oneline',

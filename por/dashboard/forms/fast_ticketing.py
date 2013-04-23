@@ -96,7 +96,8 @@ class FastTicketing(object):
       ticket_store.add_tickets(project = self.request.model_instance.project, 
                                customerrequest = customerrequest,
                                tickets = appstruct['tickets'],
-                               reporter = user)
+                               reporter = user,
+                               notify=True)
 
       raise exc.HTTPFound(location=self.request.fa_url('CustomerRequest',
                                                          customerrequest.id))

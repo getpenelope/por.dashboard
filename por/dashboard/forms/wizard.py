@@ -320,19 +320,20 @@ class Wizard(object):
             groups[newuser['role']].append(user)
             if newuser['send_email_howto']:
                 recipients.append(newuser['email'])
-        if recipients:
+        for recipient in recipients:
             headers = {"header": u'Welcome to Penelope',
             "message": ('You were enabled as a user of Penelope, '
                         'our online projects and trouble ticket '
-                        'management platform. With penelope you will be '
+                        'management platform. Your username is <strong>%s</strong>. '
+                        'With penelope you will be '
                         'able to open new tickets and follow the evolution '
                         'of the issues you opened. We recommend to double '
                         'check that the tickets you open have the '
-                        '"Ticked opened by customer" field set at "SI" (Yes).'),
+                        '"Ticked opened by customer" field set at "SI" (Yes).' % recipient),
             "link": '%s/password_reset_form' % (self.request.application_url),
             "action": 'Activate your account NOW!'}
             message = Message(subject=WELCOME_SUBJECT,
-                                recipients=recipients,
+                                recipients=[recipient],
                                 body='Welcome to Penelope',
                                 extra_headers={'X-MC-Template': 'general',
                                                'X-MC-MergeVars': json.dumps(headers)})

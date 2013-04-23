@@ -10,6 +10,7 @@
 - fix problem with wizard ticket creation [amleczko]
 - add project manager to fastticketing form [amleczko]
 - fix notifications from fastticketing [amleczko]
+- add explicit username in welcome email [amleczko]
 
 1.6.4 (2013-04-16)
 ------------------

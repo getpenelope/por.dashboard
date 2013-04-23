@@ -74,9 +74,10 @@ class FastTicketing(object):
         for g in getattr(project, 'groups', []):
           for u in g.users:
             users.add(u)
+        users.add(project.manager)
         form['tickets']['ticket']['owner'].widget.values = [('', '')] + \
                                       [(str(u.id), u.fullname) for u in list(users)]
-        
+
         controls = self.request.POST.items()
         if controls != []:
           try:
@@ -86,18 +87,18 @@ class FastTicketing(object):
               result['form'] = e.render()
               return result
 
-
         result['form'] = form.render()
         return result
-    
+
     def handle_save(self, appstruct):
       customerrequest = self.context.get_instance()
       user = self.request.authenticated_user
-      
+
       ticket_store.add_tickets(project = self.request.model_instance.project, 
                                customerrequest = customerrequest,
                                tickets = appstruct['tickets'],
-                               reporter = user)
-      
+                               reporter = user,
+                               notify=True)
+
       raise exc.HTTPFound(location=self.request.fa_url('CustomerRequest',
                                                          customerrequest.id))

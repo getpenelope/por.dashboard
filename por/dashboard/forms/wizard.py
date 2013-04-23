@@ -374,7 +374,8 @@ class Wizard(object):
                                days=cr[key],
                                customer_request=customer_request)
             project.add_customer_request(customer_request)
-            #BBB define the ticket
+            if not cr['ticket']:
+                continue
             tickets += [{'summary': cr['title'],
                          'customerrequest': customer_request,
                          'reporter': manager.email,

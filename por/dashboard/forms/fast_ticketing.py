@@ -6,7 +6,6 @@ from pyramid.renderers import get_renderer
 from pyramid import httpexceptions as exc
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import fastticketing as fastticketing_fanstatic
-from por.models import DBSession, User
 from por.models.tickets import ticket_store
 
 class Tickets(colander.SequenceSchema):
@@ -76,7 +75,7 @@ class FastTicketing(object):
             users.add(u)
         form['tickets']['ticket']['owner'].widget.values = [('', '')] + \
                                       [(str(u.id), u.fullname) for u in list(users)]
-        
+
         controls = self.request.POST.items()
         if controls != []:
           try:
@@ -86,18 +85,17 @@ class FastTicketing(object):
               result['form'] = e.render()
               return result
 
-
         result['form'] = form.render()
         return result
-    
+
     def handle_save(self, appstruct):
       customerrequest = self.context.get_instance()
       user = self.request.authenticated_user
-      
+
       ticket_store.add_tickets(project = self.request.model_instance.project, 
                                customerrequest = customerrequest,
                                tickets = appstruct['tickets'],
                                reporter = user)
-      
+
       raise exc.HTTPFound(location=self.request.fa_url('CustomerRequest',
                                                          customerrequest.id))

@@ -1,8 +1,7 @@
 1.6.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- fix problem with wizard ticket creation [amleczko]
 
 1.6.4 (2013-04-16)
 ------------------

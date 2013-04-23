@@ -73,6 +73,7 @@ class FastTicketing(object):
         for g in getattr(project, 'groups', []):
           for u in g.users:
             users.add(u)
+        users.add(project.manager)
         form['tickets']['ticket']['owner'].widget.values = [('', '')] + \
                                       [(str(u.id), u.fullname) for u in list(users)]
 

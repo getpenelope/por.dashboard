@@ -1,7 +1,7 @@
 1.7.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- search improvements
 
 
 1.7.2 (2013-04-24)

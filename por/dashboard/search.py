@@ -41,11 +41,17 @@ def searchable_tracs(request):
 
 class SearchSchema(colander.MappingSchema):
     tracs = colander.SchemaNode(deform.Set(allow_empty=True),
-                                widget=ChosenMultipleWidget(css_class='trac-select',
-                                                           placeholder=u'Select tracs'),
+                                widget=ChosenMultipleWidget(placeholder=u'Select tracs'),
                                 missing=colander.null,
                                 title=u'')
-
+    realms = colander.SchemaNode(deform.Set(allow_empty=True),
+                                widget=ChosenMultipleWidget(placeholder=u'Select realms',
+                                            values=[('', ''),
+                                                    ('ticket', 'Ticket'),
+                                                    ('wiki', 'Wiki'),
+                                                    ('changeset','Changeset')]),
+                                missing=colander.null,
+                                title=u'')
     searchable = colander.SchemaNode(typ=colander.String(),
                             title=u'',
                             widget = deform.widget.TextInputWidget(
@@ -71,7 +77,6 @@ def search(request):
     if not controls:
         return {'form': form.render(),
                 'results':[]}
-
     try:
         appstruct = form.validate(controls)
     except deform.ValidationFailure as e:
@@ -114,10 +119,11 @@ def search(request):
 
 class FullTextSearch(object):
 
-    def __init__(self, request, tracs=None, searchable=None):
+    def __init__(self, request, tracs=None, searchable=None, realms=None):
         self.request = request
         self.viewable_tracs = list(tracs)
         self.searchable = searchable.split(' ') # always a sequence
+        self.realms = list(realms)
         self.solr_endpoint = request.registry.settings.get('por.solr')
 
     @property
@@ -169,12 +175,31 @@ class FullTextSearch(object):
         else:
             return query_include(self.viewable_tracs)
 
+    def _build_realm_filter(self, si):
+
+        Q = si.query().Q
+
+        def query(items):
+            if len(items) > 2:
+                return Q(realm=items.pop()) | query(items)
+            elif len(items) == 2:
+                return Q(realm=items.pop()) | Q(realm=items.pop())
+            elif len(items) == 1:
+                return Q(realm=items.pop())
+            else:
+                return ""
+        return query(self.realms)
+
     def _do_search(self, sort_by=None):
         si = SolrInterface(self.solr_endpoint)
         query = si.query().field_limit(score=True)
 
         for searchterm in self.searchable:
             query = query.query(searchterm)
+
+        realm_query = self._build_realm_filter(si)
+        if realm_query:
+            query = query.filter(realm_query)
 
         trac_query = self._build_trac_filter(si)
         if trac_query:
@@ -218,7 +243,12 @@ class FullTextSearchObject(object):
     def __init__(self, project, realm, id=None, score=None,
                  title=None, author=None, changed=None, created=None,
                  oneline=None, involved=None, popularity=None, comments=None,
-                 solr_highlights=None , **kwarg):
+                 parent_id=None, solr_highlights=None , **kwarg):
+
+        if not involved:
+            involved = ()
+        if not author:
+            author = ()
         self.project = project
         self.author = ', '.join(author + involved)
         self.created = created
@@ -230,6 +260,7 @@ class FullTextSearchObject(object):
         self._oneline = oneline
         self.id = id
         self.score = score
+        self.parent_id = parent_id
 
     @property
     def title(self):
@@ -252,4 +283,7 @@ class FullTextSearchObject(object):
         return bleach.clean(text, ['span'], ['class'], strip=True)
 
     def href(self):
-        return "trac/%s/%s/%s" % (self.project, self.realm, self.id)
+        if self.realm == 'changeset':
+            return "trac/%s/%s/%s/%s" % (self.project, self.realm, self.id, self.parent_id)
+        else:
+            return "trac/%s/%s/%s" % (self.project, self.realm, self.id)

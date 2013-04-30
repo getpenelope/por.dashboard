@@ -121,6 +121,8 @@ def search(request):
 class FullTextSearch(object):
 
     def __init__(self, request, tracs=None, searchable=None, realms=None):
+        if not realms:
+            realms = []
         self.request = request
         self.viewable_tracs = list(tracs)
         self.searchable = searchable.split(' ') # always a sequence

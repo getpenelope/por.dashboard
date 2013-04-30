@@ -207,6 +207,22 @@ table.time-entries tbody tr:hover th {
   background-color: white;
 }
 
+@media only screen and (max-width: 1024px) {
+    table.table-search td:nth-child(5),
+    table.table-search th:nth-child(5),
+    table.table-search td:nth-child(6),
+    table.table-search th:nth-child(6)
+    {display: none;}
+}
+
+@media only screen and (max-width: 640px) {
+    table.table-search td:nth-child(1),
+    table.table-search th:nth-child(1),
+    table.table-search td:nth-child(4),
+    table.table-search th:nth-child(4)
+    {display: none;}
+}
+
 
 
 /* XXX unused? */

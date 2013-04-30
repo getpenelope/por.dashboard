@@ -12,7 +12,7 @@
           <li tal:condition="previous"><a href="${previous}">Previous</a></li>
           <li tal:condition="next"><a href="${next}">Next</a></li>
         </ul>
-      <table class="table table-bordered time-entries table-condensed">
+      <table class="table table-bordered time-entries table-condensed table-search">
             <thead>
               <tr>
                 <th>type</th>

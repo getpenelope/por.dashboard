@@ -32,11 +32,12 @@ def searchable_tracs(request):
     queries = []
     for trac in viewable_tracs:
         queries.append(query % {'trac': trac.trac_name,
-                                'project': '%s - %s' % (trac.project.customer.name, trac.project.name),
+                                'project': '%s [%s]' % (trac.project.name, trac.project.customer.name),
                                 'user': request.authenticated_user.email})
     sql = '\nUNION '.join(queries)
     sql += ';'
-    return DBSession().execute(sql).fetchall()
+    tracs =  DBSession().execute(sql).fetchall()
+    return sorted(tracs, key=lambda s: s[1].lower())
 
 
 class SearchSchema(colander.MappingSchema):

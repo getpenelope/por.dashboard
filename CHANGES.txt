@@ -1,7 +1,8 @@
 1.7.3 (unreleased)
 ------------------
 
-- search improvements
+- search improvements [amleczko]
+- developer can manage svn [amleczko]
 
 
 1.7.2 (2013-04-24)

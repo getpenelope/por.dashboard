@@ -35,7 +35,7 @@ class ManageSidebarRenderer(SidebarRenderer):
                                           attrs=dict(href="'%s/admin/Group' % request.application_url")))
         self.actions.append(SidebarAction('manage_svn_authz',
                                           content=u'Manage SVN authz',
-                                          permission='manage',
+                                          permission='manage_svn',
                                           attrs=dict(href="'%s/manage/svn_authz' % request.application_url")))
         actions = self.actions.render(request)
         template =  get_renderer('por.dashboard.forms:templates/project_sidebar.pt').implementation()
@@ -50,7 +50,7 @@ gsm.registerAdapter(ManageSidebarRenderer, (IManageView,), ISidebar)
 def manage_home(request):
     return {}
 
-@view_config(route_name='manage_svn_authz', renderer='skin', permission='manage')
+@view_config(route_name='manage_svn_authz', renderer='skin', permission='manage_svn')
 def manage_svn_authz(request):
     settings = get_current_registry().settings
     authz_file = settings.get('por.svn.authz')

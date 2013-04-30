@@ -98,6 +98,11 @@
                     <tal:translate i18n:translate="label_manage">manage</tal:translate>
                   </a>
                 </li>
+                <li tal:condition="request.has_permission('manage_svn', context)">
+                  <a href="${request.application_url}/manage/svn_authz">
+                    <tal:translate i18n:translate="label_manage">manage SVN</tal:translate>
+                  </a>
+                </li>
               </ul>
             </li>
           </ul>

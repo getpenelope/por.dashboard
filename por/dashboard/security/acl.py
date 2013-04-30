@@ -104,6 +104,9 @@ DEFAULT_ACL.allow('role:administrator', ALL_PERMISSIONS)
 DEFAULT_ACL.allow(Authenticated, 'view_home')
 DEFAULT_ACL.allow('role:redturtle_developer', 'search')
 
+#/manage_svn
+DEFAULT_ACL.allow('role:redturtle_developer', 'manage_svn')
+
 #/view_iterations
 DEFAULT_ACL.allow('role:local_developer', 'view_iterations')
 DEFAULT_ACL.allow('role:local_project_manager', 'view_iterations')

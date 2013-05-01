@@ -6,7 +6,7 @@ import deform
 from sunburnt import SolrInterface
 from pyramid.view import view_config
 from pyramid.url import current_route_url
-from por.models.dashboard import Trac
+from por.models.dashboard import Trac, User
 from por.models import DBSession
 from por.dashboard.lib.widgets import SearchButton, PorInlineForm
 from deform_bootstrap.widget import ChosenMultipleWidget
@@ -41,18 +41,29 @@ def searchable_tracs(request):
 
 
 class SearchSchema(colander.MappingSchema):
+
     tracs = colander.SchemaNode(deform.Set(allow_empty=True),
-                                widget=ChosenMultipleWidget(placeholder=u'Select tracs'),
-                                missing=colander.null,
-                                title=u'')
+                      widget=ChosenMultipleWidget(placeholder=u'Select tracs',
+                                                  style="width:250px"),
+                      missing=colander.null,
+                      title=u'')
+
     realms = colander.SchemaNode(deform.Set(allow_empty=True),
-                                widget=ChosenMultipleWidget(placeholder=u'Select realms',
-                                            values=[('', ''),
-                                                    ('ticket', 'Ticket'),
-                                                    ('wiki', 'Wiki'),
-                                                    ('changeset','Changeset')]),
-                                missing=colander.null,
-                                title=u'')
+               widget=ChosenMultipleWidget(placeholder=u'Select realms',
+                                           style="width:250px",
+                                           values=[('', ''),
+                                                   ('ticket', 'Ticket'),
+                                                   ('wiki', 'Wiki'),
+                                                   ('changeset','Changeset')]),
+               missing=colander.null,
+               title=u'')
+
+    authors = colander.SchemaNode(deform.Set(allow_empty=True),
+                    widget=ChosenMultipleWidget(placeholder=u'Select author',
+                                                 style="width:250px"),
+                    missing=colander.null,
+                    title=u'')
+
     searchable = colander.SchemaNode(typ=colander.String(),
                             title=u'',
                             widget = deform.widget.TextInputWidget(
@@ -72,7 +83,12 @@ def search(request):
             )
 
     tracs = searchable_tracs(request)
-    form['tracs'].widget.values = [('', '')] + [(t.trac_name, t.project_name) for t in tracs]
+    form['tracs'].widget.values = [('', '')] \
+                              + [(t.trac_name, t.project_name) for t in tracs]
+
+    users = DBSession.query(User).order_by(User.fullname)
+    form['authors'].widget.values = [('', '')] \
+                              + [(a.email, a.fullname) for a in users]
 
     controls = request.GET.items()
     if not controls:
@@ -96,37 +112,45 @@ def search(request):
 
     if results:
         docs = [FullTextSearchObject(**doc) for doc in results]
-        base_query = dict(request.params)
         records_len = results.result.numFound
         if not fs.page_start + fs.page_size >= records_len: # end of set
-            next_query = base_query.copy()
-            next_query['page_start'] = fs.page_start + fs.page_size
+            next_query = add_param(request, 'page_start', fs.page_start + fs.page_size)
             next_url = current_route_url(request, _query=next_query)
 
         if not fs.page_start == 0:
             previous_page = fs.page_start - fs.page_size
             if previous_page < 0:
                 previous_page = 0
-            previous_query = base_query.copy()
-            previous_query['page_start'] = previous_page
+            previous_query = add_param(request, 'page_start', previous_page)
             previous_url = current_route_url(request, _query=previous_query)
 
     return {'docs': docs,
             'next': next_url,
             'form': form.render(appstruct=appstruct),
             'previous': previous_url,
+            'add_param': add_param,
             'results': results}
+
+
+def add_param(request, key, value):
+    base_query = request.params.copy()
+    base_query[key] = value
+    return base_query
 
 
 class FullTextSearch(object):
 
-    def __init__(self, request, tracs=None, searchable=None, realms=None):
+    def __init__(self, request, tracs=None, searchable=None,
+                 realms=None, authors=None):
         if not realms:
             realms = []
+        if not authors:
+            authors = []
         self.request = request
-        self.viewable_tracs = list(tracs)
         self.searchable = searchable.split(' ') # always a sequence
+        self.viewable_tracs = list(tracs)
         self.realms = list(realms)
+        self.authors = list(authors)
         self.solr_endpoint = request.registry.settings.get('por.solr')
 
     @property
@@ -193,6 +217,21 @@ class FullTextSearch(object):
                 return ""
         return query(self.realms)
 
+    def _build_author_filter(self, si):
+
+        Q = si.query().Q
+
+        def query(items):
+            if len(items) > 2:
+                return Q(author=items.pop()) | query(items)
+            elif len(items) == 2:
+                return Q(author=items.pop()) | Q(author=items.pop())
+            elif len(items) == 1:
+                return Q(author=items.pop())
+            else:
+                return ""
+        return query(self.authors)
+
     def _do_search(self, sort_by=None):
         si = SolrInterface(self.solr_endpoint)
         query = si.query().field_limit(score=True)
@@ -203,6 +242,10 @@ class FullTextSearch(object):
         realm_query = self._build_realm_filter(si)
         if realm_query:
             query = query.filter(realm_query)
+
+        author_query = self._build_author_filter(si)
+        if author_query:
+            query = query.filter(author_query)
 
         trac_query = self._build_trac_filter(si)
         if trac_query:
@@ -253,7 +296,7 @@ class FullTextSearchObject(object):
         if not author:
             author = ()
         self.project = project
-        self.author = ', '.join(author + involved)
+        self.author = ', '.join(author)
         self.created = created
         self.popularity = popularity
         self.comments = comments

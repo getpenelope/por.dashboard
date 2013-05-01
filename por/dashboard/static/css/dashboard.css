@@ -223,6 +223,18 @@ table.time-entries tbody tr:hover th {
     {display: none;}
 }
 
+div#results dt{
+  margin: 1.5em 0 0;
+}
+
+div#results .author{
+  color: #090;  
+}
+
+div#results dd{
+  font-size: 0.9em;
+  margin: 0.2em 1em;
+}
 
 
 /* XXX unused? */

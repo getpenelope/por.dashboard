@@ -1,7 +1,7 @@
 1.7.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- search improvements [amleczko]
 
 
 1.7.3 (2013-04-30)

@@ -2,6 +2,7 @@
 ------------------
 
 - search improvements [amleczko]
+- fix fastticketing notification [amleczko]
 
 
 1.7.3 (2013-04-30)

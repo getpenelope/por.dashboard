@@ -30,7 +30,7 @@ class Tickets(colander.SequenceSchema):
                             widget=deform.widget.TextAreaWidget(
                                   cols=60,
                                   rows=5),
-                            missing=None,
+                            missing=colander.required,
                             title=u'Description',
                             description=u'use wiki syntax')
           owner = colander.SchemaNode(typ=colander.String(),

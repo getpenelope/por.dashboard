@@ -1,4 +1,4 @@
-1.7.5 (unreleased)
+1.7.5 (2013-05-07)
 ------------------
 
 - openid fixes [amleczko]

@@ -1,5 +1,6 @@
 from velruse.providers import google
 from velruse.exceptions import ThirdPartyFailure
+from velruse.exceptions import AuthenticationDenied
 from pyramid.httpexceptions import HTTPFound
 
 
@@ -47,4 +48,7 @@ class RedturtleConsumer(google.GoogleConsumer):
         try:
             return super(RedturtleConsumer, self).process(request)
         except ThirdPartyFailure:
+            raise HTTPFound(location='/')
+        except AuthenticationDenied:
+            request.add_message('Authentication from google has failed. Try again.', 'error')
             raise HTTPFound(location='/')

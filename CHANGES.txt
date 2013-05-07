@@ -1,7 +1,7 @@
 1.7.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- openid fixes [amleczko]
 
 
 1.7.4 (2013-05-07)

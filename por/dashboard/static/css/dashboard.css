@@ -226,6 +226,9 @@ table.time-entries tbody tr:hover th {
 div#results dt{
   margin: 1.5em 0 0;
 }
+div#results dt.ticketclosed a{
+  color: gray;
+}
 
 div#results .author{
   color: #090;  

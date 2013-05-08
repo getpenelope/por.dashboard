@@ -243,6 +243,14 @@ class FullTextSearch(object):
         if realm_query:
             query = query.filter(realm_query)
 
+        # boosting
+        query = query.boost_relevancy(5, realm="ticket")\
+                     .boost_relevancy(5, status="new")\
+                     .boost_relevancy(5, status="assigned")\
+                     .boost_relevancy(10, status="reopened")\
+                     .boost_relevancy(3, status="reviewing")\
+                     .boost_relevancy(5, status="accepted")
+
         author_query = self._build_author_filter(si)
         if author_query:
             query = query.filter(author_query)
@@ -257,6 +265,7 @@ class FullTextSearch(object):
         return query.paginate(start=self.page_start, rows=self.page_size)\
                             .highlight('oneline',
                                     **{'simple.pre':'<span class="highlight">',
+                                       'snippets': 3,
                                        'simple.post':'</span>'})\
                             .highlight('title',
                                     **{'simple.pre':'<span class="highlight">',
@@ -286,7 +295,7 @@ class FullTextSearch(object):
 class FullTextSearchObject(object):
     '''Minimal behaviour class to store documents going to/comping from Solr.
     '''
-    def __init__(self, project, realm, id=None, score=None,
+    def __init__(self, project, realm, id=None, score=None, status=None,
                  title=None, author=None, changed=None, created=None,
                  oneline=None, involved=None, popularity=None, comments=None,
                  parent_id=None, solr_highlights=None , **kwarg):
@@ -307,6 +316,11 @@ class FullTextSearchObject(object):
         self.id = id
         self.score = score
         self.parent_id = parent_id
+        self.status = status
+
+    @property
+    def closed(self):
+        return self.status == 'closed'
 
     @property
     def title(self):

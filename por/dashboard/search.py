@@ -266,30 +266,9 @@ class FullTextSearch(object):
                             .highlight('oneline',
                                     **{'simple.pre':'<span class="highlight">',
                                        'snippets': 3,
-                                       'simple.post':'</span>'})\
-                            .highlight('title',
-                                    **{'simple.pre':'<span class="highlight">',
+                                       'fragsize': 600,
                                        'simple.post':'</span>'})\
                             .execute()
-
-    def _docs(self, query):
-        """Return a generator of all the docs in query.
-        """
-        i = 0
-        while True:
-            response = query.paginate(start=i, rows=self.page_size)\
-                            .highlight('oneline',
-                                    **{'simple.pre':'<span class="highlight">',
-                                       'simple.post':'</span>'})\
-                            .highlight('title',
-                                    **{'simple.pre':'<span class="highlight">',
-                                       'simple.post':'</span>'})\
-                            .execute()
-            for doc in response:
-                yield doc
-            if len(response) < self.page_size:
-                break
-            i += self.page_size
 
 
 class FullTextSearchObject(object):

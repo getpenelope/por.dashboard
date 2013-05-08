@@ -234,22 +234,13 @@ class FullTextSearch(object):
 
     def _do_search(self, sort_by=None):
         si = SolrInterface(self.solr_endpoint)
-        query = si.query().field_limit(score=True)
 
-        for searchterm in self.searchable:
-            query = query.query(searchterm)
+        searchquery = si.Q(*[si.Q(s) for s in self.searchable])
+        query = si.query(searchquery).field_limit(score=True)
 
         realm_query = self._build_realm_filter(si)
         if realm_query:
             query = query.filter(realm_query)
-
-        # boosting
-        query = query.boost_relevancy(5, realm="ticket")\
-                     .boost_relevancy(5, status="new")\
-                     .boost_relevancy(5, status="assigned")\
-                     .boost_relevancy(10, status="reopened")\
-                     .boost_relevancy(3, status="reviewing")\
-                     .boost_relevancy(5, status="accepted")
 
         author_query = self._build_author_filter(si)
         if author_query:
@@ -262,13 +253,20 @@ class FullTextSearch(object):
         for field in sort_by or []:
             query = query.sort_by(field)
 
-        return query.paginate(start=self.page_start, rows=self.page_size)\
+        query = query.paginate(start=self.page_start, rows=self.page_size)\
                             .highlight('oneline',
                                     **{'simple.pre':'<span class="highlight">',
                                        'snippets': 3,
                                        'fragsize': 600,
-                                       'simple.post':'</span>'})\
-                            .execute()
+                                       'simple.post':'</span>'})
+
+        # boosting - super hacky but sunburnt is not support bq
+        options = query.options()
+        options['bq'] = ['realm:ticket^999','status:new^100', 'status:assigned^100',
+                         'status:reopened^999', 'status:reviewing^100',
+                         'status:accepted^100','(*:* -xxx)^999']
+        result = query.interface.search(**options)
+        return query.transform_result(result, dict)
 
 
 class FullTextSearchObject(object):

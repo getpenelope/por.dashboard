@@ -1,4 +1,4 @@
-1.7.6 (unreleased)
+1.7.6 (2013-05-08)
 ------------------
 
 - search improvements [amleczko]

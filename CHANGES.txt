@@ -2,6 +2,7 @@
 ------------------
 
 - search improvements [amleczko]
+- fix backlog math [amleczko]
 
 
 1.7.6 (2013-05-08)

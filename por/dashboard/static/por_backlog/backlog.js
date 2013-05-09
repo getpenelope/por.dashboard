@@ -142,12 +142,12 @@ $(document).ready(function(){
                 matching_crs += 1;
             }
         });
-        if (percentages.length){
-            total_percentage = (percentages.reduce(function(a, b) { return a + b }) / percentages.length);
-        } else {
-            total_percentage = -1;
+        if (total_done > 0 && total_estimate > 0){
+            total_percentage = (total_done / total_estimate) * 100;
         }
-
+        else {
+            total_percentage = 0;
+        }
         fill_duration($bgb_header.find('.total-estimate'), total_estimate);
         fill_duration($bgb_header.find('.total-done'), total_done);
         fill_percentage($bgb_header.find('.total-percentage'), total_percentage);

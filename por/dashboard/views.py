@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import itertools
 import os
+import re
 
 from zope.interface import implements
 from pyramid.response import Response
@@ -224,7 +225,11 @@ def view_navbar(request):
     """
     Navbar is rendered separately, and served to Trac via ajax.
     """
-    return {}
+    trac = re.search('/trac/(?P<trac>[a-zA-z0-9\-_]+)',request.environ.get('HTTP_REFERER', ''))
+    if trac:
+        return {'trac':trac.group('trac')}
+    else:
+        return {}
 
 
 @view_config(name='change_cr_placement', renderer='json', permission='view_home', request_method='POST')

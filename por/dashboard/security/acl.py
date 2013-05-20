@@ -182,7 +182,7 @@ def __calculate_matrix__(user_id):
     >>> __calculate_matrix__(140)
     (set(['secretary'], {'fta': set(['internal_developer'])})
     """
-    from por.models import Group, User, DBSession, Project
+    from por.models import User, DBSession, Project
     user = DBSession.query(User).get(user_id)
     global_roles = set(user.roles_names)
     local_roles = {}
@@ -190,16 +190,17 @@ def __calculate_matrix__(user_id):
         log.debug("User: %s.\nGlobal roles: %s.\nLocal roles: %s" % (user, global_roles, local_roles))
         return global_roles, local_roles
 
-    groups = DBSession().query(Group)\
-                        .join(Group.roles)\
-                        .filter(Group.users.contains(user))
-    for group in groups:
-        local_roles[group.project_id] = set(group.roles_names)
+    def add_local_role(project_id, role_name):
+        if not project_id in local_roles:
+            local_roles[project_id] = set()
+        local_roles[project_id].add(role_name)
+
+    for group in user.groups:
+        for role in group.roles_names:
+            add_local_role(group.project_id, role)
     for project in DBSession().query(Project.id).filter(Project.manager == user):
-        if project.id in local_roles:
-            local_roles[project.id].add(u'project_manager')
-        else:
-            local_roles[project.id] = set([u'project_manager'])
+        add_local_role(project.id, u'project_manager')
+
     # extract global_roles from local_roles:
     roles_from_projects = set([item for sublist in local_roles.values() for item in sublist])
 

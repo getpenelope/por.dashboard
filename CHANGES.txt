@@ -1,7 +1,7 @@
 1.7.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- update security [amleczko]
 
 
 1.7.8 (2013-05-16)

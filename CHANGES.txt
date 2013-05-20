@@ -1,4 +1,4 @@
-1.7.9 (unreleased)
+1.7.9 (2013-05-20)
 ------------------
 
 - update security [amleczko]

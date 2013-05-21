@@ -1,7 +1,7 @@
 1.7.10 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- make sure smartadd treats unicode correctly [amleczko]
 
 
 1.7.9 (2013-05-20)

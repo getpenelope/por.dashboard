@@ -98,7 +98,7 @@ class SmartAdd(object):
                                                                       request=self.request)
                         ]
 
-        parser = SmartAddParser(self.request.body,
+        parser = SmartAddParser(unicode(self.request.body, 'utf8', 'ignore'),
                                 projects=projects,
                                 available_tickets=ticket_provider,
                                 request=self.request)

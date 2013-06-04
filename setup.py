@@ -53,7 +53,8 @@ requires = [
     'Beaker',
     'js.jquery_datatables==1.8.2',
     'unittest2',
-    'bleach'
+    'bleach',
+    'raven'
     ]
 
 if sys.version_info[:3] < (2,5,0):
@@ -80,6 +81,8 @@ setup(name='por.dashboard',
       entry_points = """\
       [paste.app_factory]
       main = por.dashboard:main
+      [paste.filter_app_factory]
+      raven = por.dashboard.ravenlog:sentry_filter_factory
       [fanstatic.libraries]
       por = por.dashboard.fanstatic_resources:por_library
       deform_library = por.dashboard.fanstatic_resources:deform_library

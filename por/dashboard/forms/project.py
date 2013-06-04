@@ -93,6 +93,17 @@ def configurate(config):
         model='por.models.dashboard.Project',
         view=ProjectModelView)
 
+    #custom view for contracts section
+    config.formalchemy_model_view('admin',
+        request_method='GET',
+        permission='view',
+        name='contracts',
+        attr='contracts',
+        renderer='por.dashboard.forms:templates/contracts.pt',
+        model='por.models.dashboard.Project',
+        view=ProjectModelView)
+
+
     #custom view for tickets section
     config.formalchemy_model_view('admin',
         request_method='GET',
@@ -132,6 +143,17 @@ def configurate(config):
         renderer='fa.bootstrap:templates/admin/new.pt',
         model='por.models.dashboard.Project',
         view=ProjectModelView)
+
+    #custom view for adding a contract to the project
+    config.formalchemy_model_view('admin',
+        request_method='GET',
+        permission='new',
+        name='add_contract',
+        attr='add_contract',
+        renderer='fa.bootstrap:templates/admin/new.pt',
+        model='por.models.dashboard.Project',
+        view=ProjectModelView)
+
 
     config.formalchemy_model_view('admin',
         request_method='GET',
@@ -190,6 +212,11 @@ class ProjectModelView(ModelView):
         self.request.model_name = dashboard.CustomerRequest.__name__
         return self.new()
 
+    def add_contract(self, *args, **kwargs):
+        self.request.model_class = dashboard.Contract
+        self.request.model_name = dashboard.Contract.__name__
+        return self.new()
+
     def all_customer_requests(self):
         session = DBSession()
         return self.request.filter_viewables(
@@ -208,6 +235,12 @@ class ProjectModelView(ModelView):
     def tickets(self, *args, **kwargs):
         return self.render(customer_requests=self.all_customer_requests())
 
+    @actions.action()
+    def contracts(self, *args, **kwargs):
+        context = self.context.get_instance()
+        page = self.get_page(collection=context.contracts)
+        pager = page.pager(**self.pager_args)
+        return self.render(pager=pager, items=page)
 
     @actions.action()
     def customer_requests(self, *args, **kwargs):

@@ -116,5 +116,39 @@
       to_state="billable" />
 
 </workflow>
+<!-- Contract workflow -->
+
+<workflow
+   type="Contract"
+   name="Contract workflow"
+   state_attr="workflow_state"
+   content_types="por.models.interfaces.IContract"
+   initial_state="draft">
+
+   <state name="draft"></state>
+   <state name="active"></state>
+   <state name="done"></state>
+
+   <transition
+      name="activate"
+      from_state="draft"
+      to_state="active" />
+
+   <transition
+      name="deactivate"
+      from_state="active"
+      to_state="draft" />
+
+   <transition
+      name="achieve"
+      from_state="active"
+      to_state="done" />
+
+   <transition
+      name="unachieve"
+      from_state="done"
+      to_state="active" />
+
+</workflow>
 
 </configure>

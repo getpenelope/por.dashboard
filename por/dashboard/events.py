@@ -17,7 +17,7 @@ from plone.i18n.normalizer import idnormalizer
 
 from por.models import DBSession
 from por.models.dashboard import TRAC, SVN, Application, Customer, \
-        CustomerRequest, Group, Project, User
+        CustomerRequest, Group, Project, User, Contract
 from por.models.tp import TimeEntry
 from por.dashboard.lib.fa_fields import BigTextAreaFieldRenderer
 from por.dashboard.forms.renderers import grooming_label_renderer, UrlRenderer
@@ -109,8 +109,6 @@ def before_project_edit_render(context, event):
     fs = event.kwargs['fs']
     if not fs._render_fields.keys():
         fs.configure()
-    #fs.customer.set(renderer=autocomplete_relation(filter_by='name'))
-    #fs.manager.set(renderer=autocomplete_relation(filter_by='fullname'))
     fs.test_date.set(instructions=_(u'the date (if any) in which the Customer has officially accepted the project as "completed"'))
     fs.assistance_date.set(instructions=_(u'the date (if any) when the post-release assistance is ending'))
     fs.completion_date.set(instructions=_(u'the date in which the full invoicing of the developement phase is completed, excluding post-release assistance. Usually, it is the date of the final invoice.'))
@@ -263,6 +261,22 @@ def before_application_new_render(context, event):
         fs.configure(readonly=fs.readonly)
     del fs._render_fields['position']
     fs.api_uri.metadata['instructions'] = _(u'Please provide application uri. If you choose trac or svn - leave this field empty.')
+
+
+#Customer request rendering events
+@events.subscriber([Contract, events.IBeforeEditRenderEvent])
+def before_contract_editrender(context, event):
+    bind_project(context, event)
+    fs = event.kwargs['fs']
+    fs.contract_number.set(instructions=_(u'Something like number/year'))
+    fs.ammount.set(instructions=_(u'Contract ammount in EUR'))
+    if not fs._render_fields.keys():
+        fs.configure(readonly=fs.readonly)
+    fs.description.set(renderer=RichTextFieldRenderer(use='tinymce', theme='simple'))
+    fs.append(fs.name.required())
+    del fs._render_fields['project']
+    for field in ['name', 'contract_number', 'ammount', 'days', 'start_date', 'end_date', 'description']:
+        fs.append(fs._render_fields.pop(field))
 
 
 #Customer request rendering events

@@ -109,6 +109,7 @@ class ProjectSidebarRenderer(SidebarRenderer):
         super(ProjectSidebarRenderer, self).__init__(*args, **kwargs)
         self.applications = EmptyActions()
         self.crs = EmptyActions()
+        self.contracts = EmptyActions()
 
     def add_base_actions(self, request):
         project = self.context.project
@@ -186,7 +187,25 @@ class ProjectSidebarRenderer(SidebarRenderer):
                                           permission='view',
                                           attrs=dict(href=safe_fa_url('Project', project.id, 'customer_requests'))))
 
+        #Contract
+        contract = HeaderSidebarAction('contracts',
+                      content=u'Contracts',
+                      permission='edit',
+                      no_link=True)
+        contract.append(Button(id='add',
+                      content=literal('<i class="icon-plus-sign icon-white"></i>'),
+                      _class='btn btn-success btn-mini',
+                      permission='edit',
+                      attrs=dict(href=safe_fa_url('Project', project.id, 'add_contract'),
+                                 title="'Add contract'")))
+        self.actions.append(contract)
+        self.actions.append(self.contracts)
+        self.actions.append(SidebarAction('list_all_contracts',
+                                          content=u'List all...',
+                                          permission='view',
+                                          attrs=dict(href=safe_fa_url('Project', project.id, 'contracts'))))
         self.actions.append(DividerSidebarAction('div'))
+
         #Permissions
         permissions = HeaderSidebarAction('permissions',
                             content=u'Permissions',
@@ -245,12 +264,22 @@ class ProjectSidebarRenderer(SidebarRenderer):
                                           permission='view',
                                           attrs=dict(href=safe_fa_url('CustomerRequest', cr.id))))
 
+    def add_contract_actions(self):
+        project = self.context.project
+        for cr in sorted(project.contracts, key=unicodelower):
+            icon = 'icon-file'
+            self.contracts.append(SidebarAction('cr_%s' % cr.id,
+                                          content=literal('<i class="%s"></i> %s' % (icon, cr.name)),
+                                          permission='view',
+                                          attrs=dict(href=safe_fa_url('Contract', cr.id))))
+
     def render(self, request):
         project = self.context.project
         action = getattr(request, 'action', '')
         self.add_base_actions(request)
         self.add_document_actions(only_trac = action != 'applications')
         self.add_cr_actions(only_active = action != 'customer_requests')
+        self.add_contract_actions()
         actions = self.actions.render(request)
 
         template =  get_renderer('por.dashboard.forms:templates/project_sidebar.pt').implementation()

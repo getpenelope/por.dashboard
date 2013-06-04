@@ -1,7 +1,7 @@
 1.7.12 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- New contract integration [amleczko]
 
 
 1.7.11 (2013-06-04)

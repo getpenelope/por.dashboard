@@ -208,7 +208,7 @@ class ModelView(Base):
 
 
 
-from por.dashboard.forms import project, customer, application, customer_request, timeentry, group, user, role
+from por.dashboard.forms import project, customer, application, customer_request, timeentry, group, user, role, contract
 
 def include_forms(config):
     project.configurate(config)
@@ -219,6 +219,7 @@ def include_forms(config):
     group.configurate(config)
     user.configurate(config)
     role.configurate(config)
+    contract.configurate(config)
 
 class AttributeField(fields.AttributeField):
     """

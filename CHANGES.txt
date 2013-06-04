@@ -1,4 +1,4 @@
-1.7.11 (unreleased)
+1.7.11 (2013-06-04)
 -------------------
 
 - updates for sentry [amleczko]

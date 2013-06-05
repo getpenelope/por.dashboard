@@ -260,7 +260,7 @@ class ProjectSidebarRenderer(SidebarRenderer):
                 icon = 'icon-time'
 
             self.crs.append(SidebarAction('cr_%s' % cr.id,
-                                          content=literal('<i class="%s"></i> %s' % (icon, cr.name)),
+                                          content=literal('<i class="%s"></i> %s' % (icon, cr)),
                                           permission='view',
                                           attrs=dict(href=safe_fa_url('CustomerRequest', cr.id))))
 

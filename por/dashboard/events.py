@@ -275,6 +275,7 @@ def before_contract_editrender(context, event):
     fs.description.set(renderer=RichTextFieldRenderer(use='tinymce', theme='simple'))
     fs.append(fs.name.required())
     del fs._render_fields['project']
+    del fs._render_fields['customer_requests']
     for field in ['name', 'contract_number', 'ammount', 'days', 'start_date', 'end_date', 'description']:
         fs.append(fs._render_fields.pop(field))
 

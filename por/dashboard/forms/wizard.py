@@ -15,7 +15,7 @@ from pyramid_mailer import get_mailer
 from pyramid_mailer.message import Message
 
 from por.models import Project, Group, DBSession, User, CustomerRequest
-from por.models.dashboard import ApplicationACL
+from por.models.dashboard import ApplicationACL, Contract
 from por.models.dashboard import Trac, Role, GoogleDoc, Estimation
 from por.dashboard.lib.widgets import SubmitButton, ResetButton, WizardForm
 from por.dashboard.fanstatic_resources import wizard as wizard_fanstatic
@@ -242,6 +242,37 @@ class CustomerRequests(colander.SequenceSchema):
     customer_request = CustomerRequest(title='')
 
 
+class Contracts(colander.SequenceSchema):
+    class Contract(colander.Schema):
+          name = SchemaNode(typ=colander.String(),
+                             widget=TextInputWidget(placeholder=u'Contract name'),
+                             missing=colander.required,
+                             title=u'')
+          contract_number = SchemaNode(typ=colander.String(),
+                             widget=TextInputWidget(placeholder=u'Contract '
+                                                    'number'),
+                             missing=None,
+                             title=u'')
+          days = SchemaNode(typ=colander.Decimal(),
+                              widget=TextInputWidget(css_class='input-mini',
+                                                     placeholder=u'Days'),
+                              missing=None,
+                              title=u'')
+          ammount = SchemaNode(typ=colander.Decimal(),
+                              widget=TextInputWidget(css_class='input-mini',
+                                                     placeholder=u'Ammount in EUR'),
+                              missing=None,
+                              title=u'')
+          start_date = SchemaNode(typ=colander.Date(),
+                              missing=None,
+                              title=u'Start date')
+          end_date = SchemaNode(typ=colander.Date(),
+                              missing=None,
+                              title=u'End date')
+
+    contract = Contract(name='',)
+
+
 class WizardSchema(colander.Schema):
     project = Definition()
     google_docs = GoogleDocsSchema()
@@ -249,6 +280,7 @@ class WizardSchema(colander.Schema):
     new_users = NewUsersSchema()
     milestones = Milestones()
     customer_requests = CustomerRequests()
+    contracts = Contracts()
 
 
 class Wizard(object):
@@ -292,7 +324,7 @@ class Wizard(object):
         if controls != []:
             try:
                 appstruct = form.validate(controls)
-                self.handle_save(appstruct)
+                self.handle_save(form, appstruct)
             except ValidationFailure as e:
                 result['form'] = e.render()
                 return result
@@ -306,10 +338,18 @@ class Wizard(object):
         result['form'] = form.render(appstruct=appstruct)
         return result
 
-    def handle_save(self, appstruct):
+    def handle_save(self, form, appstruct):
         """ The main handle method for the wizard. """
         customer = self.context.get_instance()
-        #create new users
+
+        # check if the contracts are unique
+        contract_names = [a['name'] for a in appstruct['contracts']]
+        if len(contract_names) > len(set(contract_names)):
+            self.request.add_message(_(u'Contrct names are duplicated'), type='danger')
+            raise ValidationFailure(form, appstruct,
+                                    colander.Invalid(None, None))
+
+        # create new users
         recipients = []
         groups = {}
         mailer = get_mailer(self.request)
@@ -356,6 +396,11 @@ class Wizard(object):
             role = DBSession.query(Role).filter(Role.name == rolename).one()
             group = Group(roles=[role, ], users=users)
             project.add_group(group)
+
+        #create contract
+        for co in appstruct['contracts']:
+            contract = Contract(**co)
+            project.contracts.append(contract)
 
         #create CR
         tickets = []

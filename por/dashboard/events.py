@@ -280,6 +280,27 @@ def before_contract_editrender(context, event):
         fs.append(fs._render_fields.pop(field))
 
 
+@events.subscriber([Contract, events.IBeforeValidateEvent])
+def before_contract_validated(context, event):
+    """called before validation"""
+    def my_validator(fs):
+        contract_id = idnormalizer.normalize('%s_%s' % (fs.project_id.value, fs.name.value))
+
+        if contract_id.lower() in PROJECT_ID_BLACKLIST:
+            msg = _('${fs_name_value} is a restricted name! Please choose '
+                    'another contract name!',
+                    mapping={'fs_name_value': fs.name.value})
+            raise ValidationError(msg)
+
+        contract = DBSession().query(Contract).get(contract_id)
+        if contract and contract != fs.model:
+            msg = _('${fs_name_value} already exists! Please choose another '
+                    'contract name!',
+                    mapping={'fs_name_value': fs.name.value})
+            raise ValidationError(msg)
+    event.fs.validator = my_validator
+
+
 #Customer request rendering events
 @events.subscriber([CustomerRequest, events.IBeforeEditRenderEvent])
 def before_customerrequest_editrender(context, event):

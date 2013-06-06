@@ -48,6 +48,7 @@
               <th>description</th>
               <th>location</th>
               <th>invoice</th>
+              <th>contract</th>
               <th>type</th>
             </tr>
           </thead>
@@ -58,7 +59,7 @@
                 <input type="checkbox" name="te_${row['id']}" />
               </td>
               <td>
-                <span class="${'statechange-done' if row['id'] in done else 'statechange-error' if row['id'] in errors else nothing}">
+                <span class="${'statechange-done' if row['id'] in done_state else 'statechange-error' if row['id'] in errors else nothing}">
                   ${wf_state_names[row['workflow_state']] if row['workflow_state'] else nothing}
                 </span>
               </td>
@@ -77,6 +78,11 @@
                 ${row['invoice_number']}
               </td>
               <td>
+                <span class="${'statechange-done' if row['id'] in done_contract else 'statechange-error' if row['id'] in errors else nothing}">
+                  ${row['contract']}
+                </span>
+              </td>
+              <td>
                 ${row['tickettype']}
               </td>
             </tr>
@@ -93,10 +99,18 @@
         Select all&nbsp;
       </label>
 
-      <select name="new_state">
+      <select id="new_state" name="new_state" class="i-can-haz-chzn-select">
+        <option value="">Choose a new state...</option>
         <option tal:repeat="ws all_wf_states"
                 value="${ws[0]}">${ws[1]}</option>
       </select>
+      <script>$('#new_state').chosen()</script>
+      <select id="new_contract" name="new_contract" class="i-can-haz-chzn-select">
+        <option value="">Choose a new contract...</option>
+        <option tal:repeat="contract all_contracts"
+                value="${contract[0]}">${contract[1]}</option>
+      </select>
+      <script>$('#new_contract').chosen()</script>
 
       <input type="text"
              name="invoice_number"

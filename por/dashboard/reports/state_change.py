@@ -21,7 +21,7 @@ from por.dashboard.reports.queries import qry_active_projects, te_filter_by_cust
 from por.dashboard.reports.validators import validate_period
 from por.dashboard.reports.favourites import render_saved_query_form
 
-from por.models import DBSession, Project, TimeEntry, User, CustomerRequest
+from por.models import DBSession, Project, TimeEntry, User, CustomerRequest, Contract
 from por.models.tickets import ticket_store
 
 log = logging.getLogger(__name__)
@@ -131,6 +131,7 @@ class StateChangeReport(object):
                         'project': te.project.name.strip(),
                         'user': te.author.fullname.strip(),
                         'date': te.date.strftime('%Y-%m-%d'),
+                        'contract': te.contract,
                         'description': te.description,
                         'hours_str': te.hours_str,
                         'workflow_state': te.workflow_state,
@@ -161,8 +162,9 @@ class StateChangeReport(object):
 
 
 
-    def state_change(self):
+    def state_contract_change(self):
         new_state = self.request.POST['new_state']
+        new_contract = self.request.POST['new_contract']
         invoice_number = self.request.POST['invoice_number']
 
         te_ids = set(int(s[3:])
@@ -171,46 +173,44 @@ class StateChangeReport(object):
 
         qry = DBSession.query(TimeEntry).filter(TimeEntry.id.in_(te_ids))
 
-        done = set()
+        done_state = set()
+        done_contract = set()
         errors = {}
 
         for te in qry:
-            try:
-                workflow = get_workflow(te, te.__class__.__name__)
-                workflow.transition_to_state(te, self.request, new_state, skip_same=True)
-                done.add(te.id)
-                if new_state == 'invoiced' and invoice_number:
-                    te.invoice_number = invoice_number
-            except WorkflowError as msg:
-                errors[te.id] = msg
+            if new_state:
+                try:
+                    workflow = get_workflow(te, te.__class__.__name__)
+                    workflow.transition_to_state(te, self.request, new_state, skip_same=True)
+                    done_state.add(te.id)
+                    if new_state == 'invoiced' and invoice_number:
+                        te.invoice_number = invoice_number
+                except WorkflowError as msg:
+                    errors[te.id] = msg
+            if new_contract:
+                done_contract.add(te.id)
+                te.contract_id = new_contract
 
-        return done, errors
-
-
+        return done_state, done_contract, errors
 
 
     @view_config(name='report_state_change', route_name='reports', renderer='skin', permission='reports_state_change')
     def __call__(self):
 
-        done = set()
+        done_state = set()
+        done_contract = set()
         errors = {}
         if self.request.POST:
-            done, errors = self.state_change()
-            if done:
-                self.request.add_message('State changed for %d time entries.' % len(done))
-            else:
-                # TODO prevent submitting if there are no selected entries
-                self.request.add_message('No time entry was selected')
-        else:
-            done = set()
-            errors = {}
+            done_state, done_contract, errors = self.state_contract_change()
+            if done_state:
+                self.request.add_message('State changed for %d time entries.' % len(done_state))
+            if done_contract:
+                self.request.add_message('Contract changed for %d time entries.' % len(done_contract))
 
         # GET parameters for the search form
 
         fanstatic_resources.report_te_state_change.need()
-
         schema = self.StateChangeSchema(validator=validate_period).clone()
-
         projects = self.request.filter_viewables(qry_active_projects())
 
         # select customers that have some active project
@@ -274,12 +274,16 @@ class StateChangeReport(object):
 
         entries_detail = self.search(**appstruct)
 
+        all_contracts = DBSession().query(Contract.id, Contract.name).all()
+
         result_table = render('por.dashboard:reports/templates/state_change.pt',
                               {
                                   'entries_tree': entries_detail['entries_tree'],
                                   'all_wf_states': all_wf_states,
+                                  'all_contracts': all_contracts,
                                   'wf_state_names': dict((ws[0], ws[1]) for ws in all_wf_states),
-                                  'done': done,
+                                  'done_state': done_state,
+                                  'done_contract': done_contract,
                                   'errors': errors,
                               },
                               request=self.request)

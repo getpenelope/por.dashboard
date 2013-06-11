@@ -116,11 +116,12 @@ $(document).ready(function(){
     // checks if a given row is selected from the main filter
     var check_filter = function($tr) {
         var $chk_placement = $('#placement_'+$tr.data('placement')),
-            $chk_workflow = $('#workflow_'+$tr.data('workflow-state'));
-
+            $chk_workflow = $('#workflow_'+$tr.data('workflow-state')),
+            $chk_contract = $('#contract').val() === $tr.data('contract');
         return (
                   (($chk_placement.length===0) || $chk_placement.is(':checked')) &&
-                  (($chk_workflow.length===0) || $chk_workflow.is(':checked'))
+                  (($chk_workflow.length===0) || $chk_workflow.is(':checked')) && 
+                  ($chk_contract)
         );
     };
 
@@ -196,8 +197,6 @@ $(document).ready(function(){
         fill_percentage($('.bigtotal-percentage'), bigtotal_percentage);
     };
 
-
-
     // upon clicking the header, show/collapse the project's bgb
     // the header will not be clickable (no trigger class) if there is only one project in the page
     $('.bgb-project-trigger').click(function(ev) {
@@ -251,6 +250,8 @@ $(document).ready(function(){
     };
 
     $('#backlog-filter input').change(refresh_trs);
+    $('#tekken-filter input').change(refresh_trs);
+    $('#tekken-filter select').change(refresh_trs);
     refresh_trs();
 
 

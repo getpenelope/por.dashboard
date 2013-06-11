@@ -84,3 +84,24 @@ tr[data-cr-editable] .backlog-placement-trigger {
   background-color: transparent;
 }
 
+#tekken-filter ul {
+  padding-top: 5px;
+}
+
+#tekken-filter .subnav.subnav-fixed  ul {
+  padding-left: 50px;
+}
+
+#tekken-filter li {
+  float: left;
+  padding-left: 8px;
+}
+
+#tekken-filter li > input {
+  float: left;
+  margin-right: 3px;
+}
+
+#tekken-filter li > label {
+  float: left;
+}

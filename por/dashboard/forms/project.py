@@ -248,8 +248,8 @@ class ProjectModelView(ModelView):
         params = Backlog(self.request).backlog(projects=[project])
         params['request'] = self.request
         params['context'] = self.request.context
+        params['all_contracts'] = project.contracts
         params['multiple_bgb'] = False
-
         # override backlog permissions.
         # if the user is not a developer/pm/admin, deny the view of placement and done time entries
         roles = self.request.authenticated_user.roles_in_context(project)
@@ -257,7 +257,7 @@ class ProjectModelView(ModelView):
         if not roles.intersection(set(['administrator', 'project_manager', 'internal_developer','secretary'])):
             params['can_view_placement'] = False
 
-        return SkinObject('backlog')(**params)
+        return SkinObject('tekken')(**params)
 
 
     @actions.action('documentation')

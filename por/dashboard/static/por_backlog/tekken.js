@@ -10,7 +10,7 @@ function drawChart(){
         return Math.floor(data.getValue(rowNum, 1) / data.getValue(rowNum, 2) * 100)
     }
     function Filler2Perc(data, rowNum){
-        return Math.floor((data.getValue(rowNum, 2) - data.getValue(rowNum, 1)) / data.getValue(rowNum, 2) * 100)
+        return Math.floor((data.getValue(rowNum, 2) - data.getValue(rowNum, 1)) / data.getValue(rowNum, 2) * 101) // make sure the math.round will get 100
     }
     function CRTooltip(data, rowNum){
         return '<p id="first_tooltip" class="google-visualization-tooltip-item"><strong>Estimated CR:</strong> ' + data.getValue(rowNum,1) + ' days<br/><strong>Total project:</strong> ' + data.getValue(rowNum, 2) + ' days<br/><strong>Time entries:</strong> ' + data.getValue(rowNum, 0) + ' days</p>'

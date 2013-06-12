@@ -19,7 +19,7 @@
       <form id="tekken-filter">
         <div class="subnav">
           <select id="contract" name="contract">
-            <option tal:repeat="contract all_contracts" value="${contract.id}">${contract.name}</option>
+            <option tal:repeat="contract all_contracts" value="${contract.id}">${contract.name} [${contract.workflow_state}]</option>
           </select>
         </div>
         <div class="subnav">

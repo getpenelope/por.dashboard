@@ -248,7 +248,7 @@ class ProjectModelView(ModelView):
         params = Backlog(self.request).backlog(projects=[project])
         params['request'] = self.request
         params['context'] = self.request.context
-        params['all_contracts'] = project.contracts
+        params['all_contracts'] = project.contracts_by_state()
         params['multiple_bgb'] = False
         # override backlog permissions.
         # if the user is not a developer/pm/admin, deny the view of placement and done time entries

@@ -22,7 +22,7 @@
           <li>Project management in Penelope</li>
         </ul>
       </div>
+      <div tal:replace="structure form" />
     </div>
-    <div tal:replace="structure form" />
     </body>
   </html>

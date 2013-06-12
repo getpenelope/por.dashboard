@@ -242,7 +242,7 @@ class CustomerRequests(colander.SequenceSchema):
     customer_request = CustomerRequest(title='')
 
 
-class Contracts(colander.SequenceSchema):
+class CRperContracts(colander.MappingSchema):
     class Contract(colander.Schema):
           name = SchemaNode(typ=colander.String(),
                              widget=TextInputWidget(placeholder=u'Contract name'),
@@ -270,6 +270,7 @@ class Contracts(colander.SequenceSchema):
                               missing=None,
                               title=u'End date')
 
+    customer_requests = CustomerRequests()
     contract = Contract(name='',)
 
 
@@ -279,8 +280,7 @@ class WizardSchema(colander.Schema):
     users = UsersSchema()
     new_users = NewUsersSchema()
     milestones = Milestones()
-    customer_requests = CustomerRequests()
-    contracts = Contracts()
+    contracts = CRperContracts()
 
 
 class Wizard(object):
@@ -318,7 +318,8 @@ class Wizard(object):
                 [(str(role.id), role.name) for role in roles]
 
         form['milestones'].widget = SequenceWidget(min_len=1)
-        form['customer_requests'].widget = SequenceWidget(min_len=2)
+        form['contracts'].title = ''
+        form['contracts']['customer_requests'].widget = SequenceWidget(min_len=2)
 
         controls = self.request.POST.items()
         if controls != []:
@@ -329,25 +330,18 @@ class Wizard(object):
                 result['form'] = e.render()
                 return result
 
-        appstruct = {'customer_requests': [{'ticket': True,
-                                            'title': u'Analisi'},
-                                           {'ticket': True,
-                                            'title': u'Supporto'}]
-                                       }
-
+        appstruct = {}
+        appstruct['contracts'] ={'customer_requests': []}
+        appstruct['contracts']['customer_requests'].append({'ticket': True,
+                                                            'title': u'Analisi'})
+        appstruct['contracts']['customer_requests'].append({'ticket': True,
+                                                            'title': u'Supporto'})
         result['form'] = form.render(appstruct=appstruct)
         return result
 
     def handle_save(self, form, appstruct):
         """ The main handle method for the wizard. """
         customer = self.context.get_instance()
-
-        # check if the contracts are unique
-        contract_names = [a['name'] for a in appstruct['contracts']]
-        if len(contract_names) > len(set(contract_names)):
-            self.request.add_message(_(u'Contrct names are duplicated'), type='danger')
-            raise ValidationFailure(form, appstruct,
-                                    colander.Invalid(None, None))
 
         # create new users
         recipients = []
@@ -397,14 +391,15 @@ class Wizard(object):
             group = Group(roles=[role, ], users=users)
             project.add_group(group)
 
-        #create contract
-        for co in appstruct['contracts']:
-            contract = Contract(**co)
-            project.contracts.append(contract)
+        #create contract with cr
+        crs = appstruct['contracts']['customer_requests']
+        co =  appstruct['contracts']['contract']
+        contract = Contract(**co)
+        contract.project_id = project.id
 
         #create CR
         tickets = []
-        for cr in appstruct['customer_requests']:
+        for cr in crs:
             customer_request = CustomerRequest(name=cr['title'])
             person_types = {
                 'junior': 'Junior',
@@ -417,21 +412,23 @@ class Wizard(object):
             for key, value in person_types.items():
                 if cr[key]:
                     Estimation(person_type=value,
-                               days=cr[key],
-                               customer_request=customer_request)
+                            days=cr[key],
+                            customer_request=customer_request)
             project.add_customer_request(customer_request)
+            customer_request.contract = contract
             if not cr['ticket']:
                 continue
             tickets += [{'summary': cr['title'],
-                         'customerrequest': customer_request,
-                         'reporter': manager.email,
-                         'type': 'task',
-                         'priority': 'major',
-                         'milestone': 'Backlog',
-                         'owner': manager.email}]
+                        'customerrequest': customer_request,
+                        'reporter': manager.email,
+                        'type': 'task',
+                        'priority': 'major',
+                        'milestone': 'Backlog',
+                        'owner': manager.email}]
 
         #create project management CR and tickets
         project_management_cr = CustomerRequest(name="Project management")
+        project_management_cr.contract = contract
         project.add_customer_request(project_management_cr)
         project_management_tickets = PM_TICKETS
         for summary, description in project_management_tickets.items():

@@ -88,6 +88,7 @@
             data-placement="${cr.placement if can_view_placement else nothing}"
             data-cr-editable="${1 if can_edit_cr[cr] else nothing}"
             data-workflow-state="${cr.workflow_state}"
+            data-filler="${cr.filler}"
             data-contract="${cr.contract and cr.contract.id or ''}"
             data-contract-days="${cr.contract and cr.contract.days or ''}"
             data-duration-estimate="${bgb.get_estimate(cr) if can_view_estimate[bgb.project] else nothing}"
@@ -98,6 +99,7 @@
               <a href="/admin/CustomerRequest/${cr.id}">
                 ${cr.name}
               </a>
+              <span tal:condition="cr.filler" class="label label-inverse pull-right">Filler</span>
             </td>
             <td class="backlog-workflow">${cr.workflow_state}</td>
             <td tal:condition="can_view_estimate_column" class="backlog-duration">&nbsp;</td>

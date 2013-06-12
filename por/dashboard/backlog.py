@@ -47,16 +47,13 @@ class Backlog(object):
         self.context = request.context
 
 
-    def fetch_estimations(self):
+    def fetch_estimations(self, projects):
+        project_ids = [a.id for a in projects]
         return dict(
-                (row[0], datetime.timedelta(days=row[1]/3.0))    # 8 vs 24 hour days
-                for row in DBSession.execute("""
-                                             SELECT customer_request_id, SUM(days)
-                                               FROM estimations
-                                           GROUP BY customer_request_id
-                                             """)
+                (row.id, datetime.timedelta(days=row.estimation_days/3.0))    # 8 vs 24 hour days
+                    for row in DBSession().query(CustomerRequest)\
+                                          .filter(CustomerRequest.project_id.in_(project_ids))
                 )
-
 
     def fetch_done(self, projects):
         cr_done = collections.defaultdict(lambda: datetime.timedelta(0))
@@ -89,7 +86,7 @@ class Backlog(object):
             projects = sorted(self.request.filter_viewables(projects.filter(Project.active)),
                               key=lambda p: (p.customer.name.lower(), p.customer.name.lower()))
 
-        estimations_cache = self.fetch_estimations()
+        estimations_cache = self.fetch_estimations(projects)
         done_cache = self.fetch_done(projects)
 
         bgbs = [ProjectBGB(p, estimations_cache, done_cache) for p in projects]

@@ -1,19 +1,18 @@
 var tekken;
 var tekkendata;
-var showfiller = true;
 
 function drawChart(){
     function TimeEntriesEnd(data, rowNum){
         return data.getValue(rowNum, 0)
     }
     function CR2Perc(data, rowNum){
-        return Math.floor(data.getValue(rowNum, 1) / data.getValue(rowNum, 2) * 100)
+        return Math.floor(data.getValue(rowNum, 1) / data.getValue(rowNum, 3) * 100)
     }
     function Filler2Perc(data, rowNum){
-        return Math.floor((data.getValue(rowNum, 2) - data.getValue(rowNum, 1)) / data.getValue(rowNum, 2) * 101) // make sure the math.round will get 100
+        return Math.floor(data.getValue(rowNum, 2) / data.getValue(rowNum, 3) * 100)
     }
     function CRTooltip(data, rowNum){
-        return '<p id="first_tooltip" class="google-visualization-tooltip-item"><strong>Estimated CR:</strong> ' + data.getValue(rowNum,1) + ' days<br/><strong>Total project:</strong> ' + data.getValue(rowNum, 2) + ' days<br/><strong>Time entries:</strong> ' + data.getValue(rowNum, 0) + ' days</p>'
+        return '<p id="first_tooltip" class="google-visualization-tooltip-item"><strong>Estimated CR:</strong> ' + data.getValue(rowNum,1) + ' days<br/><strong>Total project:</strong> ' + data.getValue(rowNum, 3) + ' days<br/><strong>Time entries:</strong> ' + data.getValue(rowNum, 0) + ' days</p>'
     }
     var view=new google.visualization.DataView(tekkendata);
     columns = [{calc: function() {return ''}, type: 'string'},
@@ -21,11 +20,9 @@ function drawChart(){
         {calc: function() {return 0}, type: 'number', role:'interval'},
         {calc: TimeEntriesEnd, type: 'number', role:'interval'},
         {calc: CRTooltip, type: 'string', role:'tooltip', 'properties': {'html':true}},
+        {calc: Filler2Perc, type: 'number'},
+        {calc: function() {return 'Filler CR'}, type: 'string', role:'tooltip'}
     ]
-    if (showfiller){
-        columns.push({calc: Filler2Perc, type: 'number'})
-        columns.push({calc: function() {return 'Filler CR'}, type: 'string', role:'tooltip'})
-    }
     view.setColumns(columns);
     tekken.draw(view,
         {title:"Tekken bar",
@@ -54,6 +51,7 @@ function drawVisualization() {
     tekkendata = new google.visualization.DataTable();
     tekkendata.addColumn('number', 'Time Entries');
     tekkendata.addColumn('number', 'CR estimated');
+    tekkendata.addColumn('number', 'CR filler');
     tekkendata.addColumn('number', 'Total project');
     tekkendata.addRows(1);
     tekken = new google.visualization.BarChart(document.getElementById('visualization'));
@@ -77,17 +75,24 @@ google.setOnLoadCallback(function() {
     var update_project_totals = function($bgb_header) {
         var totals = {},
             total_estimate = 0,
+            total_filler = 0,
             total_done = 0,
             total_days = 0,
             $bgb = $bgb_header.next('.bgb-project');
 
-        $bgb.find('tr[data-workflow-state]:visible').each(function() {
-            total_estimate += parseInt($(this).data('duration-estimate'), 10);
+        $bgb.find('tr[data-contract]:visible').each(function() {
             total_done += parseInt($(this).data('duration-done'), 10);
             total_days = parseInt($(this).data('contract-days'), 10);
         });
+        $bgb.find('tr[data-contract]:not([data-filler]):visible').each(function() {
+            total_estimate += parseInt($(this).data('duration-estimate'), 10);
+        });
+        $bgb.find('tr[data-filler]:visible').each(function() {
+            total_filler += parseInt($(this).data('duration-estimate'), 10);
+        });
         return {
             total_estimate: Math.round(total_estimate / 60 / 60 / 8),
+            total_filler: Math.round(total_filler / 60 / 60 / 8),
             total_done: Math.round(total_done / 60/ 60 / 8),
             total_days: total_days,
         };
@@ -96,9 +101,11 @@ google.setOnLoadCallback(function() {
     // update the tekken bar
     var update_tekken = function() {
         var totals = update_project_totals($('.bgb-project-header'));
+        console.log(totals);
         tekkendata.setValue(0, 0, totals.total_done);
         tekkendata.setValue(0, 1, totals.total_estimate);
-        tekkendata.setValue(0, 2, totals.total_days);
+        tekkendata.setValue(0, 2, totals.total_filler);
+        tekkendata.setValue(0, 3, totals.total_days);
         drawChart();
     };
 

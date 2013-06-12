@@ -117,6 +117,14 @@ customer_request_tabs = actions.TabsActions(actions.TabAction("show",
                                                               permission='estimations',
                                                               attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'estimations')")),)
 
+customer_request_tabs_without_estimations = actions.TabsActions(actions.TabAction("show",
+                                                              content="View",
+                                                              permission='view',
+                                                              attrs=dict(href="request.fa_url(request.model_name, request.model_id, '')")),
+                                            actions.TabAction("tickets",
+                                                              content="Tickets",
+                                                              permission='view',
+                                                              attrs=dict(href="request.fa_url(request.model_name, request.model_id, 'tickets')")))
 
 add_ticket = actions.UIButton(id='add_ticket',
                               content='Add ticket',
@@ -143,7 +151,10 @@ class CustomerRequestModelView(ModelView):
     def __init__(self, *args, **kwargs):
         super(CustomerRequestModelView, self).__init__(*args, **kwargs)
         self.defaults_actions.update(show_buttons=actions.Actions(actions.edit))
-        cr_actions = deepcopy(customer_request_tabs)
+        if self.context.get_instance().filler:
+            cr_actions = deepcopy(customer_request_tabs_without_estimations)
+        else:
+            cr_actions = deepcopy(customer_request_tabs)
         wf = workflow.change_workflow(self.context)
         if wf:
             cr_actions.append(wf)

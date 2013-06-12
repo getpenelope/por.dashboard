@@ -327,6 +327,9 @@ def before_customerrequest_render(context, event):
     del fs._render_fields['project_id']
     if not event.request.has_permission('contract', context):
         del fs._render_fields['contract']
+    if fs.readonly:
+        fs.append(Field('estimation_days', type=fatypes.Float))
+        fs.estimation_days._value = context.estimation_days
 
 
 #TimeEntry events

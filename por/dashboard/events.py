@@ -153,6 +153,14 @@ def before_project_validated(context, event):
                     'project name or provide unique ID!',
                     mapping={'fs_name_value': project_id})
             raise ValidationError(msg)
+
+        if fs.activated.value == False:
+            active_contracts = [a for a in project.contracts if a.active]
+            if active_contracts:
+                msg = _('You cannot deactivate project! It has uncompleted '
+                        'contracts!')
+                raise ValidationError(msg)
+
     event.fs.validator = my_validator
 
 

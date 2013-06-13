@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pyramid.threadlocal import get_current_request
 from fa.bootstrap import actions
 from webob.exc import HTTPFound
 from repoze.workflow import WorkflowError
@@ -16,7 +17,7 @@ def goto_state(context, request):
         request.add_message(u'Workflow status has been changed. New workflow state is: <strong>%s</strong>.' % state)
         return HTTPFound(location=request.fa_url(request.model_name, request.model_id))
     except WorkflowError, msg:
-        print unicode(msg)
+        request.add_message(msg, 'error')
         return HTTPFound(location=request.fa_url(request.model_name, request.model_id))
 
 
@@ -30,7 +31,8 @@ def change_workflow(context):
             permission='workflow',
             content='%s state' % context.get_instance().workflow_state)
 
-    states = wf.get_transitions(context.get_instance(), None)
+    request = get_current_request()
+    states = wf.get_transitions(context.get_instance(), request)
     if not states:
         return None
     for state in states:
@@ -40,3 +42,9 @@ def change_workflow(context):
             content=state['name'],
             attrs=attrs))
     return wf_actions
+
+
+def validate_contract_done(content, info):
+    """ raise WorkflowError when contract has active CustomerRequests. """
+    if [a for a in content.customer_requests if a.active]:
+        raise WorkflowError(u'Contract cannot be closed - there are customer requests still open.')

@@ -123,30 +123,37 @@
    name="Contract workflow"
    state_attr="workflow_state"
    content_types="por.models.interfaces.IContract"
+   permission_checker="pyramid.security.has_permission"
    initial_state="draft">
 
    <state name="draft"></state>
    <state name="active"></state>
-   <state name="done"></state>
+   <state name="done"
+          callback="por.dashboard.forms.workflow.validate_contract_done">
+    </state>
 
    <transition
       name="activate"
       from_state="draft"
+      permission="workflow_activate"
       to_state="active" />
 
    <transition
       name="deactivate"
       from_state="active"
+      permission="workflow_deactivate"
       to_state="draft" />
 
    <transition
       name="achieve"
       from_state="active"
+      permission="workflow_achieve"
       to_state="done" />
 
    <transition
       name="unachieve"
       from_state="done"
+      permission="workflow_unachieve"
       to_state="active" />
 
 </workflow>

@@ -54,7 +54,9 @@ requires = [
     'js.jquery_datatables==1.8.2',
     'unittest2',
     'bleach',
-    'raven'
+    'raven',
+    'sunburnt',
+    'lxml'
     ]
 
 if sys.version_info[:3] < (2,5,0):

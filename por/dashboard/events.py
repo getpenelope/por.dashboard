@@ -271,7 +271,17 @@ def before_application_new_render(context, event):
     fs.api_uri.metadata['instructions'] = _(u'Please provide application uri. If you choose trac or svn - leave this field empty.')
 
 
-#Customer request rendering events
+@events.subscriber([Contract, events.IBeforeRenderEvent])
+def before_contract_render(context, event):
+    bind_project(context, event)
+    fs = event.kwargs['fs']
+    if not fs._render_fields.keys():
+        fs.configure(readonly=fs.readonly)
+    del fs._render_fields['project']
+    del fs._render_fields['time_entries']
+    del fs._render_fields['customer_requests']
+
+
 @events.subscriber([Contract, events.IBeforeEditRenderEvent])
 def before_contract_editrender(context, event):
     bind_project(context, event)

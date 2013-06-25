@@ -282,6 +282,16 @@ def before_contract_render(context, event):
     del fs._render_fields['customer_requests']
 
 
+#Contract listing
+@events.subscriber([Contract, events.IBeforeListingRenderEvent])
+def before_contract_listing_render(context, event):
+    fs = event.kwargs['fs']
+    if not fs._render_fields.keys():
+        fs.configure(readonly=fs.readonly)
+    del fs._render_fields['description']
+    del fs._render_fields['project_id']
+
+
 @events.subscriber([Contract, events.IBeforeEditRenderEvent])
 def before_contract_editrender(context, event):
     bind_project(context, event)

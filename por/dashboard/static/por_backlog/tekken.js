@@ -3,7 +3,7 @@ var tekkendata;
 
 function drawChart(){
     function TimeEntriesEnd(data, rowNum){
-        return data.getValue(rowNum, 0)
+        return Math.floor(data.getValue(rowNum, 0) / data.getValue(rowNum, 3) * 100)
     }
     function CR2Perc(data, rowNum){
         return Math.floor(data.getValue(rowNum, 1) / data.getValue(rowNum, 3) * 100)

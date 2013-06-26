@@ -63,7 +63,7 @@ if sys.version_info[:3] < (2,5,0):
     requires.append('pysqlite')
 
 setup(name='por.dashboard',
-      version='1.7.13',
+      version='1.7.14.dev0',
       description='Penelope main package',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

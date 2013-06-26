@@ -188,42 +188,48 @@ class ProjectSidebarRenderer(SidebarRenderer):
                                           attrs=dict(href=safe_fa_url('Project', project.id, 'customer_requests'))))
 
         #Contract
-        contract = HeaderSidebarAction('contracts',
-                      content=u'Contracts',
-                      permission='edit',
-                      no_link=True)
-        contract.append(Button(id='add',
-                      content=literal('<i class="icon-plus-sign icon-white"></i>'),
-                      _class='btn btn-success btn-mini',
-                      permission='edit',
-                      attrs=dict(href=safe_fa_url('Project', project.id, 'add_contract'),
-                                 title="'Add contract'")))
-        self.actions.append(contract)
-        self.actions.append(self.contracts)
-        self.actions.append(SidebarAction('list_all_contracts',
-                                          content=u'List all...',
-                                          permission='view',
-                                          attrs=dict(href=safe_fa_url('Project', project.id, 'contracts'))))
-        self.actions.append(DividerSidebarAction('div'))
+        if request.has_permission('view_contracts', self.context.project):
+            contract = HeaderSidebarAction('contracts',
+                        content=u'Contracts',
+                        permission='view',
+                        no_link=True)
+            if request.has_permission('add_contracts', self.context.project):
+                contract.append(Button(id='add',
+                            content=literal('<i class="icon-plus-sign icon-white"></i>'),
+                            _class='btn btn-success btn-mini',
+                            permission='view',
+                            attrs=dict(href=safe_fa_url('Project', project.id, 'add_contract'),
+                                        title="'Add contract'")))
+            self.actions.append(contract)
+            self.actions.append(self.contracts)
+            self.actions.append(SidebarAction('list_all_contracts',
+                                            content=u'List all...',
+                                            permission='view',
+                                            attrs=dict(href=safe_fa_url('Project', project.id, 'contracts'))))
+            self.actions.append(DividerSidebarAction('div'))
 
         #Permissions
-        permissions = HeaderSidebarAction('permissions',
-                            content=u'Permissions',
-                            permission='edit',
-                            no_link=True)
-        permissions.append(Button(id='view',
-                              content=literal('<i class="icon-info-sign icon-white"></i>'),
-                              _class='btn btn-info btn-mini',
-                              permission='edit',
-                              attrs=dict(href=safe_fa_url('Project', project.id, 'configuration'),
-                                         title="'View groups'")))
-        permissions.append(Button(id='add',
-                                  content=literal('<i class="icon-plus-sign icon-white"></i>'),
-                                  _class='btn btn-success btn-mini',
-                                  permission='new',
-                                  attrs=dict(href=safe_fa_url('Project', project.id, 'add_group'),
-                                             title="'Add group'")))
-        self.actions.append(permissions)
+        if request.has_permission('view_groups', self.context.project):
+            permissions = HeaderSidebarAction('permissions',
+                                content=u'Permissions',
+                                permission='view',
+                                no_link=True)
+
+            permissions.append(Button(id='view',
+                                content=literal('<i class="icon-info-sign icon-white"></i>'),
+                                _class='btn btn-info btn-mini',
+                                permission='view',
+                                attrs=dict(href=safe_fa_url('Project', project.id, 'configuration'),
+                                            title="'View groups'")))
+
+            if request.has_permission('add_groups', self.context.project):
+                permissions.append(Button(id='add',
+                                        content=literal('<i class="icon-plus-sign icon-white"></i>'),
+                                        _class='btn btn-success btn-mini',
+                                        permission='view',
+                                        attrs=dict(href=safe_fa_url('Project', project.id, 'add_group'),
+                                                    title="'Add group'")))
+            self.actions.append(permissions)
 
     def add_document_actions(self, only_trac=True):
         project = self.context.project

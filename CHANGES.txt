@@ -1,4 +1,4 @@
-1.7.12 (unreleased)
+1.7.12 (2013-06-26)
 -------------------
 
 - New contract integration [amleczko]

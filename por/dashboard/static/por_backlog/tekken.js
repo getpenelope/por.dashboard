@@ -62,7 +62,7 @@ function drawVisualization() {
     google.visualization.events.addListener(tekken, 'animationfinish', refresh_te);
 
     function refresh_te(){
-        $('path').attr('stroke', 'white').attr('stroke-width','2');
+        $('path').attr('stroke', 'lightgray').attr('stroke-width','2');
         $('#first_tooltip').parent().css('left', '-=220');
     };
     drawChart()

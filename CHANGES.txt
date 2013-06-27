@@ -1,4 +1,4 @@
-1.7.14 (unreleased)
+1.7.14 (2013-06-27)
 -------------------
 
 - Updat tekken [amleczko]

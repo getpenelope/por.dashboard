@@ -128,6 +128,9 @@ datatables = Group([
                     Resource(por_library, 'por_datatables/css/paging.css'),
                    ])
 
+kanban = Group([
+                Resource(por_library, 'por_kanban/js/kanban.js', depends=[jqueryui, bootstrap_js]),
+                Resource(por_library, 'por_kanban/css/kanban.css', depends=[bootstrap, jqueryui]),
+    ])
+
 dashboard = Group([jquery, deform_bootstrap, jqueryui, jqueryui_i18n, overcast, bootstrap, dashboard_js, dashboard_css, subnav])
-
-

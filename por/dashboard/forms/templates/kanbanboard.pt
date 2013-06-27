@@ -1,0 +1,12 @@
+<html metal:use-macro="main.macros['master']">
+  <body>
+    <div metal:fill-slot="main">
+      <tal:tabs replace="structure actions.tabs(request)" tal:condition="actions.has_key('tabs')"/>
+        <div class="kanban" data-board_id="${request.model_instance.id}"></div>
+        <fieldset class="form-actions">
+          <div class="fa_controls" tal:content="structure actions.buttons(request)"></div>
+        </fieldset>
+    </div>
+  </body>
+</html>
+

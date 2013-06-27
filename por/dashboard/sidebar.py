@@ -13,7 +13,7 @@ from fa.bootstrap.actions import TabsActions, TabAction, UIButton
 from por.dashboard.interfaces import ISidebar
 from por.dashboard.lib.helpers import unicodelower
 from por.dashboard.lib.htmlhelpers import render_application_icon
-from por.models.interfaces import IProjectRelated, ICustomerRequest, IApplication
+from por.models.interfaces import IProjectRelated, ICustomerRequest, IApplication, IKanbanBoard
 
 gsm = zope.component.getGlobalSiteManager()
 
@@ -329,3 +329,31 @@ class AppSidebarRenderer(ProjectSidebarRenderer):
 
 gsm.registerAdapter(AppSidebarRenderer, (IApplication,), ISidebar)
 
+
+class ManageSidebarRenderer(SidebarRenderer):
+
+    def render(self, request):
+        #Customer request
+        board = HeaderSidebarAction('kanban_boards',
+                      content=u'Boards',
+                      permission='view',
+                      no_link=True)
+        board.append(Button(id='add',
+                      content=literal('<i class="icon-plus-sign icon-white"></i>'),
+                      _class='btn btn-success btn-mini',
+                      permission='new',
+                      attrs=dict(href=safe_fa_url('KanbanBoard', 'new'),
+                                 title="'Add new board'")))
+        self.actions.append(board)
+        for kanban in request.authenticated_user.kanban_boards:
+            icon = 'icon-time'
+            self.actions.append(SidebarAction('board_%s' % kanban.id,
+                                              content=literal(u'<i class="%s"></i> %s' % (icon, kanban)),
+                                              permission='view',
+                                              attrs=dict(href=safe_fa_url('KanbanBoard', kanban.id))))
+
+        actions = self.actions.render(request)
+        template =  get_renderer('por.dashboard.forms:templates/project_sidebar.pt').implementation()
+        return template(actions=actions, request=request)
+
+gsm.registerAdapter(ManageSidebarRenderer, (IKanbanBoard,), ISidebar)

@@ -18,7 +18,7 @@ from plone.i18n.normalizer import idnormalizer
 
 from por.models import DBSession
 from por.models.dashboard import TRAC, SVN, Application, Customer, \
-        CustomerRequest, Group, Project, User, Contract
+        CustomerRequest, Group, Project, User, Contract, KanbanBoard
 from por.models.tp import TimeEntry
 from por.dashboard.lib.fa_fields import BigTextAreaFieldRenderer
 from por.dashboard.forms.renderers import grooming_label_renderer, UrlRenderer
@@ -358,6 +358,13 @@ def before_customerrequest_render(context, event):
     if fs.readonly:
         fs.append(Field('estimation_days', type=fatypes.Float))
         fs.estimation_days._value = context.estimation_days
+
+@events.subscriber([KanbanBoard, events.IBeforeRenderEvent])
+def before_kanban_render(context, event):
+    fs = event.kwargs['fs']
+    if not fs._render_fields.keys():
+        fs.configure(readonly=fs.readonly)
+    del fs._render_fields['json']
 
 
 #TimeEntry events

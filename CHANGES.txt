@@ -1,7 +1,7 @@
 1.7.15 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- fix contract <-> CR relation [amleczko]
 
 
 1.7.14 (2013-06-27)

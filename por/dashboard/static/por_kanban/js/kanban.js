@@ -1,3 +1,47 @@
+angular.module('kanban', ['ngDragDrop'])
+  .controller("KanbanCtrl", function($scope, $socketio) {
+
+    $scope.init = function(board_id){
+        $scope.board_id = board_id;
+        $socketio.emit("board_id", board_id);
+    }
+
+    $scope.columns = [];
+    $socketio.on('columns', function(data) {
+      $scope.columns = data.value;
+    });
+
+    $scope.dropCallback = function(event, ui){
+        $socketio.emit("board_changed", $scope.columns);
+    };
+
+  })
+
+.factory("$socketio", function($rootScope) {
+  var socket = io.connect('/kanban');
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+})
+
+
 function check_number(number){
     if(isNaN(number)||(number<0))
     {
@@ -9,6 +53,26 @@ function check_number(number){
     }
     return number;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 $(document).ready(function() {
 
@@ -90,11 +154,6 @@ $(document).ready(function() {
 
             this.render = function(){
                 // first cleanup
-                this.children().remove();
-
-                var table_html = '<table class="table rounded" border=1><tr id="task_pool_header_container"></tr><tr id="task_pool_container"></tr></table>'
-                this.append(table_html);
-
                 $('#add_col').click(function(){
                     var col= {'tasks': [],
                               'title': $(board).find(".task_pool").size(),
@@ -158,6 +217,6 @@ $(document).ready(function() {
         }
     }(jQuery));
 
-    $('.kanban').kanban().get_data();
+    //$('.kanban').kanban().get_data();
 
 });

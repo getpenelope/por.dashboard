@@ -57,6 +57,8 @@ def main(global_config, **settings):
 
     config.add_static_view('static', 'por.dashboard:static')
     config.scan('por.dashboard.views')
+    config.add_route('socketio', 'socket.io/*remaining')
+    config.scan('por.dashboard.socketspace')
 
     config.add_route('tp', '/tp/*traverse', factory='por.dashboard.tp.TPContext')
     config.scan('por.dashboard.tp')

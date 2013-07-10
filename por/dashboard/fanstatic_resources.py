@@ -10,7 +10,7 @@ from js.jquery_timepicker_addon import timepicker_it
 from js.jquery_datatables import jquery_datatables_js    # jquery_datatables_css only contains a style for the demo table.
 from js.bootstrap import bootstrap_js, bootstrap_responsive_css
 from fa.bootstrap.fanstatic_resources import bootstrap
-
+from js.socketio import socketio
 
 class ForeignLibrary(Library):
     """
@@ -128,9 +128,15 @@ datatables = Group([
                     Resource(por_library, 'por_datatables/css/paging.css'),
                    ])
 
+angular = Resource(por_library, 'por_kanban/js/angular.min.js', depends=[jqueryui])
+
+angular_dd = Resource(por_library,
+                      'por_kanban/js/angular-dragdrop.js',
+                      minified='por_kanban/js/angular-dragdrop.min.js',
+                      depends=[jqueryui, angular])
 kanban = Group([
-                Resource(por_library, 'por_kanban/js/kanban.js', depends=[jqueryui, bootstrap_js]),
-                Resource(por_library, 'por_kanban/css/kanban.css', depends=[bootstrap, jqueryui]),
+                Resource(por_library, 'por_kanban/js/kanban.js', depends=[bootstrap_js, socketio, angular_dd, angular]),
+                Resource(por_library, 'por_kanban/css/kanban.css', depends=[bootstrap]),
     ])
 
 dashboard = Group([jquery, deform_bootstrap, jqueryui, jqueryui_i18n, overcast, bootstrap, dashboard_js, dashboard_css, subnav])

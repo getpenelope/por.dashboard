@@ -338,7 +338,7 @@ def before_customerrequest_editrender(context, event):
     fs.description.set(renderer=RichTextFieldRenderer(use='tinymce', theme='simple'))
     fs.append(fs.name.required())
     del fs._render_fields['project']
-    q = fs.contract.query(fs.contract.relation_type()).filter_by(project_id=context.project_id).order_by('name')
+    q = DBSession().query(fs.contract.relation_type()).filter_by(project_id=context.project_id).order_by('name')
     fs.contract.render_opts['options'] = _query_options(q)
     [fs.append(fs._render_fields.pop(a)) for a in fs._render_fields if a != 'name']
 

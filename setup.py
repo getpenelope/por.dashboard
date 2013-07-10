@@ -17,6 +17,7 @@ requires = [
     'bleach',
     'deform',
     'deform_bootstrap',
+    'distribute',
     'fa.bootstrap',
     'feedparser',
     'gevent-socketio',

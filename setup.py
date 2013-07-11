@@ -46,6 +46,7 @@ requires = [
     'python-cjson',
     'python-openid>=2.0',
     'raven',
+    'redis',
     'repoze.tm2>=1.0b1', # default_commit_veto
     'repoze.who-friendlyform',
     'repoze.who.plugins.sa',

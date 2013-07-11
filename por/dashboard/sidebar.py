@@ -356,4 +356,4 @@ class ManageSidebarRenderer(SidebarRenderer):
         template =  get_renderer('por.dashboard.forms:templates/project_sidebar.pt').implementation()
         return template(actions=actions, request=request)
 
-gsm.registerAdapter(ManageSidebarRenderer, (IKanbanBoard,), ISidebar)
+#gsm.registerAdapter(ManageSidebarRenderer, (IKanbanBoard,), ISidebar)

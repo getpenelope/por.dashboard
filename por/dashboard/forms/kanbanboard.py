@@ -51,13 +51,15 @@ add_column = factions.UIButton(id='add_col',
             content='Add column',
             permission='view',
             _class='btn btn-primary',
-            attrs=dict(href="'#'"))
+            attrs={'href':"'#'",
+                   'ng-click': "'addColumn()'",})
 
 remove_column = factions.UIButton(id='remove_col',
             content='Remove column',
             permission='view',
             _class='btn btn-danger',
-            attrs=dict(href="'#'"))
+            attrs={'href':"'#'",
+                   'ng-click': "'removeColumn()'",})
 
 
 def find_tickets(request):
@@ -77,46 +79,12 @@ def find_tickets(request):
 class KanbanBoardModelView(ModelView):
     actions_categories = ('buttons',)
     defaults_actions = deepcopy(factions.defaults_actions)
-    defaults_actions['show_buttons'] = factions.Actions(factions.edit, add_column, remove_column)
+    defaults_actions['show_buttons'] = factions.Actions(factions.edit, add_column)#, remove_column)
 
     @actions.action()
     def show(self):
         kanban.need()
         return super(KanbanBoardModelView, self).show()
-
-    def get_board_data(self):
-        try:
-            boards = loads(self.context.get_instance().json)
-        except (ValueError, TypeError):
-            boards = []
-
-        existing_tickets = [[b['id'] for b in a['tasks']] for a in boards]
-        existing_tickets = [item for sublist in existing_tickets for item in sublist]
-
-        backlog = {'title': 'Backlog',
-                   'wip': 0,
-                   'tasks': []}
-
-        ticket_text = ("<strong><a target='_blank' href='%(url)s'>%(project)s #%(ticket)s</a>"
-                       "</strong><br/>%(summary)s")
-
-        for ticket in find_tickets(self.request):
-            ticket_id = '%s_%s' % (ticket.trac_name, ticket.ticket)
-            opts = {'project': ticket.project,
-                    'url': '%s/trac/%s/ticket/%s' % (self.request.application_url,
-                                                     ticket.trac_name,
-                                                     ticket.ticket),
-                    'ticket': ticket.ticket,
-                    'summary': ticket.summary}
-            if ticket_id not in existing_tickets:
-                backlog['tasks'].append({'id': ticket_id,
-                                         'text': ticket_text % opts})
-        boards.insert(0, backlog)
-        return boards
-
-    def set_board_data(self):
-        self.context.get_instance().json = self.request.params.get('board')
-        return 'OK'
 
     def delete(self):
         """

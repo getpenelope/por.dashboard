@@ -22,4 +22,7 @@
 .save_header{width:24px;height:24px;}
 .save{width:24px;height:24px;}
 .WIP{font-size:0.7em;text-align:right;margin:5px;color:#888888;padding-right:10px}
-
+.inactive {
+      border: none;
+          background-color: #fff;
+        }

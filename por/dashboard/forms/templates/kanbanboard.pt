@@ -9,32 +9,49 @@
                    <th class="task_pool_header dotted_separator" ng-repeat="column in columns">
                      <div class="header_name click">
                        <img class="title_bullet" src="/fanstatic/por/por_kanban/img/mookup/bullet.png">
-                       <span>{{column.title}}</span>
+                       <input inline-edit ng-model="column.title" class="inactive">
+                       <a class="btn btn-mini btn-danger pull-right" href="#" title="Remove column"
+                          ng-click="removeColumn($index)"
+                          ng-show="$index != 0">
+                          <i class="icon-remove-sign icon-white"></i>
+                       </a>
                       </div>
-                      <div wip="{{column.wip}}" class="WIP">WIP: {{column.wip}}</div>
+                      <div wip="{{column.wip}}" class="WIP">WIP: 
+                        <input inline-edit ng-model="column.wip" class="inactive">
+                      </div>
                     </th>
                  </tr>
                  <tr id="task_pool_container">
-                   <td class="task_pool ui-sortable dotted_separator" ng-repeat="column in columns" data-drop="true" ng-model="columns[$index].tasks" jqyoui-droppable="{multiple:true, onDrop:'dropCallback'}">
+                   <td class="task_pool ui-sortable dotted_separator"
+                     ng-repeat="column in columns"
+                     ng-model="columns[$index].tasks"
+                     data-drop="true"
+                     jqyoui-droppable="{multiple:true, onDrop:'handleDrop'}">
+
                      <div class="big_container" id="{{task.id}}" 
-                        data-drag="true" jqyoui-draggable="{animate:true, placeholder:true, index:{{$index}}}" data-jqyoui-options="{revert: 'invalid'}" 
-                        ng-repeat="task in column.tasks"  
-                        ng-model="columns[$parent.$index].tasks[$index]"
-                        ng-show="task.id">
+                       data-drag="true" 
+                       jqyoui-draggable="{animate:true, placeholder:true, index:{{$index}}}"
+                       data-jqyoui-options="{revert: 'invalid'}" 
+                       ng-repeat="task in column.tasks"  
+                       ng-model="columns[$parent.$index].tasks[$index]"
+                       ng-show="task.id">
+
                        <div class="box_itm rounded">
                          <strong><a target="_blank" href="{{task.url}}">{{task.project}} #{{task.id}}</a></strong>
                          <br>
                          {{task.summary}}
                        </div>
-                     <div class="shadow"></div>
-                    </div>
+                       <div class="shadow"></div>
+
+                     </div>
+
                    </td>
                  </tr>
                </table>
-            </div>
             <fieldset class="form-actions">
               <div class="fa_controls" tal:content="structure actions.buttons(request)"></div>
             </fieldset>
+            </div>
         </div>
     </div>
   </body>

@@ -11,6 +11,8 @@ from js.jquery_datatables import jquery_datatables_js    # jquery_datatables_css
 from js.bootstrap import bootstrap_js, bootstrap_responsive_css
 from fa.bootstrap.fanstatic_resources import bootstrap
 from js.socketio import socketio
+from js.xeditable import bootstrap_editable
+
 
 class ForeignLibrary(Library):
     """
@@ -135,7 +137,7 @@ angular_dd = Resource(por_library,
                       minified='por_kanban/js/angular-dragdrop.min.js',
                       depends=[jqueryui, angular])
 kanban = Group([
-                Resource(por_library, 'por_kanban/js/kanban.js', depends=[bootstrap_js, socketio, angular_dd, angular]),
+                Resource(por_library, 'por_kanban/js/kanban.js', depends=[bootstrap_js, socketio, angular_dd, angular, bootstrap_editable]),
                 Resource(por_library, 'por_kanban/css/kanban.css', depends=[bootstrap]),
     ])
 

@@ -4,21 +4,28 @@
       <tal:tabs replace="structure actions.tabs(request)" tal:condition="actions.has_key('tabs')"/>
       <div ng-app="kanban">
         <div class="kanban" ng-controller="KanbanCtrl"> 
+
           <table class="table rounded" border="1" ng-init="init('${request.model_instance.id}')">
                  <tr id="task_pool_header_container">
                    <th class="task_pool_header dotted_separator" ng-repeat="column in columns">
-                     <div class="header_name click">
+                     <div class="header_name">
                        <img class="title_bullet" src="/fanstatic/por/por_kanban/img/mookup/bullet.png">
-                       <input inline-edit ng-model="column.title" class="inactive">
                        <a class="btn btn-mini btn-danger pull-right" href="#" title="Remove column"
                           ng-click="removeColumn($index)"
                           ng-show="$index != 0">
                           <i class="icon-remove-sign icon-white"></i>
-                       </a>
+                        </a>
+                        <a kanban-editable="{{column.title}}"
+                           ng-model="column.title"
+                           ng-show="$index != 0"
+                           href="#" data-type="text" data-url="" data-title="Enter column name"></a>
+                         <span ng-show="$index==0">{{column.title}}</span>
                       </div>
-                      <div wip="{{column.wip}}" class="WIP">WIP: 
-                        <input inline-edit ng-model="column.wip" class="inactive">
-                      </div>
+                      <!--<div class="WIP">WIP: 
+                        <a kanban-editable="{{column.wip}}"
+                           ng-model="column.wip"
+                           href="#" data-type="text" data-url="" data-title="Enter column WIP"></a>
+                       </div>-->
                     </th>
                  </tr>
                  <tr id="task_pool_container">
@@ -29,8 +36,8 @@
                      jqyoui-droppable="{multiple:true, onDrop:'handleDrop'}">
 
                      <div class="big_container" id="{{task.id}}" 
-                       data-drag="true" 
                        jqyoui-draggable="{animate:true, placeholder:true, index:{{$index}}}"
+                       data-drag="true" 
                        data-jqyoui-options="{revert: 'invalid'}" 
                        ng-repeat="task in column.tasks"  
                        ng-model="columns[$parent.$index].tasks[$index]"

@@ -26,6 +26,7 @@ requires = [
     'js.jquery_timepicker_addon',
     'js.lesscss',
     'js.socketio',
+    'js.xeditable',
     'jsonrpc',
     'lingua',
     'lxml',

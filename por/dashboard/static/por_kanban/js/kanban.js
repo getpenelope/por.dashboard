@@ -35,20 +35,29 @@ angular.module('kanban', ['ngDragDrop'])
       $scope.columns = data.value;
     });
 
-
   })
 
-.directive('inlineEdit', function() {
-    return function(scope, element, attrs) {
-       element.bind('click', function(){
-          element.toggleClass('inactive');
-          if(element.hasClass('inactive')){
-              $(element).blur();
-              scope.boardChanged();
-          }
-       });
-    };
-})
+.directive('kanbanEditable', ['$parse', function($parse) {
+    return {
+        restrict: "A",
+        link: function(scope, element, attrs) {
+            parsed = $parse(attrs.ngModel);
+            $(element).editable({
+                value: attrs.kanbanEditable,
+                validate: function(value) {
+                    if($.trim(value) == '') {
+                        return 'This field is required';
+                    }
+                },
+                success: function(response, newValue) {
+                    parsed.assign(scope, newValue);
+                    scope.$apply();
+                    scope.boardChanged();
+                }
+            })
+        }
+    }
+}])
 
 .factory("$socketio", function($rootScope) {
   var socket = io.connect('/kanban');
@@ -73,3 +82,4 @@ angular.module('kanban', ['ngDragDrop'])
     }
   };
 })
+

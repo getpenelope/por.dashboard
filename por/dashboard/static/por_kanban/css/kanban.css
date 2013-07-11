@@ -21,7 +21,7 @@
 .edit{width:24px;height:24px;margin-right:3px;}
 .save_header{width:24px;height:24px;}
 .save{width:24px;height:24px;}
-.WIP{font-size:0.7em;text-align:right;margin:5px;color:#888888;padding-right:10px}
+.WIP{font-size:0.8em;text-align:left;margin:0.7em 0;color:#888888}
 .inactive {
       border: none;
           background-color: #fff;

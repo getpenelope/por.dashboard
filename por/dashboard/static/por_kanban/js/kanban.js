@@ -37,27 +37,35 @@ angular.module('kanban', ['ngDragDrop'])
 
   })
 
-.directive('kanbanEditable', ['$parse', function($parse) {
+.directive('xeditable', function($timeout) {
     return {
         restrict: "A",
-        link: function(scope, element, attrs) {
-            parsed = $parse(attrs.ngModel);
-            $(element).editable({
-                value: attrs.kanbanEditable,
-                validate: function(value) {
-                    if($.trim(value) == '') {
-                        return 'This field is required';
-                    }
-                },
-                success: function(response, newValue) {
-                    parsed.assign(scope, newValue);
-                    scope.$apply();
-                    scope.boardChanged();
-                }
-            })
+        require: "ngModel",
+        link: function(scope, element, attrs, ngModel) {
+            var loadXeditable = function() {
+                angular.element(element).editable({
+                    validate: function(value) {
+                        if($.trim(value) == '') {
+                            return 'This field is required';
+                        }
+                    },
+                    display: function(value, srcData) {
+                        ngModel.$setViewValue(value);
+                        scope.$apply();
+                    },
+//                    success: function(response, newValue) {
+//                        console.log(scope.columns.slice(1,3));
+//                        scope.boardChanged();
+//                    }
+                });
+            }
+            $timeout(function() {
+                loadXeditable();
+            }, 10);
+
         }
     }
-}])
+})
 
 .factory("$socketio", function($rootScope) {
   var socket = io.connect('/kanban');

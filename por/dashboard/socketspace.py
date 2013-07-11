@@ -29,7 +29,7 @@ class KanbanNamespace(BaseNamespace):
     def initialize(self):
         self.session['board_id'] = None
         self.spawn(self.job_send_board)
-        self.spawn(self.listener)
+#        self.spawn(self.listener)
 
     def listener(self):
         r = redis.StrictRedis()
@@ -61,7 +61,7 @@ class KanbanNamespace(BaseNamespace):
             board.json = dumps(data)
             r = redis.Redis()
             r.publish('board_changed', board_id)
-        print 'BOARD SAVED', board_id
+        print "BOARD SAVED", board_id
 
     def job_send_board(self, board_id=None):
         if not board_id:

@@ -270,17 +270,17 @@ class CRperContracts(colander.MappingSchema):
                               missing=None,
                               title=u'End date')
 
-    customer_requests = CustomerRequests()
+    customer_requests = CustomerRequests(missing=None)
     contract = Contract(name='',)
 
 
 class WizardSchema(colander.Schema):
     project = Definition()
-    google_docs = GoogleDocsSchema()
-    users = UsersSchema()
-    new_users = NewUsersSchema()
-    milestones = Milestones()
-    contracts = CRperContracts()
+    google_docs = GoogleDocsSchema(missing=None)
+    users = UsersSchema(missing=None)
+    new_users = NewUsersSchema(missing=None)
+    milestones = Milestones(missing=None)
+    contracts = CRperContracts(missing=None)
 
 
 class Wizard(object):

@@ -1,4 +1,4 @@
-1.7.16 (unreleased)
+1.7.16 (2013-07-15)
 -------------------
 
 - include contract workflow_state in listing [amleczko]

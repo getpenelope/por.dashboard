@@ -2,6 +2,7 @@
 -------------------
 
 - include contract workflow_state in listing [amleczko]
+- filter only project related contracts in TE [amleczko]
 
 
 1.7.15 (2013-06-27)

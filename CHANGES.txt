@@ -1,7 +1,15 @@
-1.7.16 (unreleased)
+1.7.17 (unreleased)
 -------------------
 
 - kanban [amleczko]
+
+
+1.7.16 (2013-07-15)
+-------------------
+
+- include contract workflow_state in listing [amleczko]
+- filter only project related contracts in TE [amleczko]
+- fix wizard requirements [amleczko]
 
 
 1.7.15 (2013-06-27)

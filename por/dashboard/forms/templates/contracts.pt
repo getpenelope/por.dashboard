@@ -14,6 +14,7 @@
               <tr>
                 <th i18n:translate="">Name</th>
                 <th i18n:translate="">Contract</th>
+                <th i18n:translate="">State</th>
                 <th i18n:translate="">Days</th>
                 <th i18n:translate="">Start Date</th>
                 <th i18n:translate="">End Date</th>
@@ -23,6 +24,7 @@
               <tr>
                 <td><a href="${request.fa_url('Contract', item.id)}">${item.name}</a></td>
                 <td>${item.contract_number}</td>
+                <td>${item.workflow_state}</td>
                 <td>${item.days}</td>
                 <td style="width: 150px">${item.start_date}</td>
                 <td style="width: 150px">${item.end_date}</td>

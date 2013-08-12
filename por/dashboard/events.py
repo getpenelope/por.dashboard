@@ -384,6 +384,8 @@ def before_timeentry_edit_render(context, event):
     del fs._render_fields['end']
     del fs._render_fields['tickettype']
 
+    q = DBSession().query(fs.contract.relation_type()).filter_by(project_id=context.project_id).order_by('name')
+    fs.contract.render_opts['options'] = _query_options(q)
     #remove location required validator
     if not fs.location.value:
         fs.location.model.location = u'RedTurtle'
